@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:studyhelp/drawer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,8 +29,24 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text("StudyHelp", style: TextStyle(fontSize: 24, color: Colors.white),),
+        backgroundColor: Colors.black,
+        actions: [
+          IconButton(onPressed: (){
 
+          }, 
+          icon: const Icon(Icons.picture_as_pdf), color: Colors.red,)
+        ],
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+            
+        },
+        backgroundColor: const Color.fromARGB(255, 255, 0, 0),
+        child: const Icon(Icons.add)
+      ),
+      drawer: MyDrawer(),
     );
   }
 }
