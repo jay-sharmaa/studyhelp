@@ -5,11 +5,13 @@ import 'package:studyhelp/imageText.dart';
 import 'package:studyhelp/main.dart';
 
 class MyDrawer extends StatefulWidget {
-  const MyDrawer({Key? key}):super(key: key);
+  const MyDrawer({super.key});
   @override
   State<MyDrawer> createState() => _DrawerState();
 }
+
 List<bool> mylist = [true, false, false, false];
+
 class _DrawerState extends State<MyDrawer> {
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class _DrawerState extends State<MyDrawer> {
         children: [
           Theme(
             data: Theme.of(context).copyWith(
-              dividerTheme: DividerThemeData(color: Colors.transparent)
+              dividerTheme: const DividerThemeData(color: Colors.transparent)
             ),
             child: DrawerHeader(
               child: Container(

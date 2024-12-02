@@ -13,7 +13,7 @@ class _GallerypdfState extends State<Gallerypdf> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("StudyHelp", style: TextStyle(fontSize: 24, color: Colors.white),),
+        title: const Text("Gallery To Pdf", style: TextStyle(fontSize: 24, color: Colors.white),),
         backgroundColor: Colors.black,
         actions: [
           IconButton(onPressed: (){
@@ -23,7 +23,7 @@ class _GallerypdfState extends State<Gallerypdf> {
         ],
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      drawer: MyDrawer(),
+      drawer: const MyDrawer(),
     );
   }
 }

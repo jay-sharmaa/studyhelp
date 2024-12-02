@@ -13,7 +13,7 @@ class _ImagetextState extends State<Imagetext> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("StudyHelp", style: TextStyle(fontSize: 24, color: Colors.white),),
+        title: const Text("Image To Text", style: TextStyle(fontSize: 24, color: Colors.white),),
         backgroundColor: Colors.black,
         actions: [
           IconButton(onPressed: (){
@@ -23,7 +23,7 @@ class _ImagetextState extends State<Imagetext> {
         ],
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      drawer: MyDrawer(),
+      drawer: const MyDrawer(),
     );
   }
 }
