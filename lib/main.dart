@@ -42,6 +42,9 @@ class _HomePageState extends State<HomePage> {
                 const SnackBar(content: Text("Select Images First"), dismissDirection: DismissDirection.horizontal,)
               );
             }
+            else{
+              
+            }
           }, 
           icon: const Icon(Icons.picture_as_pdf), color: Colors.red,)
         ],
@@ -67,7 +70,7 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (context, index){
           return GestureDetector(
             child: Card(
-              color: toChange == index? Color.fromARGB(45, 0, 255, 0) : Colors.transparent,
+              color: toChange == index? const Color.fromARGB(45, 0, 255, 0) : Colors.transparent,
               child: Stack(
                 alignment: Alignment.topRight,
                 children: [
