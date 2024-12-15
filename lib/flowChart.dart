@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -17,24 +16,7 @@ GlobalKey frontScreen = GlobalKey();
 List<File> screenshot = [];
 
 class _MyFlowChartState extends State<MyFlowChart> {
-  int index = 1;
-  List<DraggableItem> draggableItems = [
-    DraggableItem(
-      id: 0,
-      offset: const Offset(100, 100),
-      child: Container(
-        width: 100,
-        height: 100,
-        color: Colors.blue,
-        child: const Center(
-          child: Text(
-            'Drag Me',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ),
-    )
-  ];
+  int index = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -60,68 +42,15 @@ class _MyFlowChartState extends State<MyFlowChart> {
           children: [
             Stack(
               children: [
-                TextButton(onPressed: (){
-                  takeScreenShot();
-                  setState(() {
-                
-                  });
-                }, child: const Text("Generate ScreenShot")),
-                ...draggableItems.map(
-                  (item) => Positioned(
-                    left: item.offset.dx,
-                    top: item.offset.dy,
-                    child: Draggable<DraggableItem>(
-                      data: item,
-                      feedback: Opacity(
-                        opacity: 0.7,
-                        child: item.child,
-                      ),
-                      childWhenDragging: Opacity(
-                        opacity: 0.3,
-                        child: item.child,
-                      ),
-                      onDraggableCanceled: (Velocity velocity, Offset offset) {
-                        setState(() {
-                          if (item.id == 0) {
-                            draggableItems.add(DraggableItem(
-                              id: index,
-                              offset: offset,
-                              child: Container(
-                                width: 100,
-                                height: 100,
-                                color: Colors.blue,
-                                child: Center(
-                                  child: Text(
-                                    (index).toString(),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ));
-                            index++;
-                          } 
-                          else if ((index - item.id) == draggableItems.length) {
-                            draggableItems[item.id] = DraggableItem(
-                              id: index,
-                              offset: offset,
-                              child: Container(
-                                width: 100,
-                                height: 100,
-                                color: Colors.blue,
-                                child: Center(
-                                  child: Text(
-                                    (index).toString(),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),);
-                          }
-                        });
-                      },
-                      child: item.child,
-                    ),
+                TextButton(
+                    onPressed: () {
+                      takeScreenShot();
+                      setState(() {});
+                    },
+                    child: const Text("Generate ScreenShot"),
                   ),
-                ),
+                    
+                Expanded(child: placeholder(index: index)),
                 const GridPaper(
                   color: Colors.grey,
                   child: SizedBox(
@@ -131,11 +60,13 @@ class _MyFlowChartState extends State<MyFlowChart> {
                 )
               ],
             ),
-            ListView.builder(itemBuilder: (context, index){
-              return Image.file(screenshot[index]);
-            },
-            shrinkWrap: true,
-            itemCount: screenshot.length,
+            
+            ListView.builder(
+              itemBuilder: (context, index) {
+                return Image.file(screenshot[index]);
+              },
+              shrinkWrap: true,
+              itemCount: screenshot.length,
             )
           ],
         ),
@@ -158,9 +89,104 @@ class DraggableItem {
 }
 
 takeScreenShot() async {
-  RenderRepaintBoundary boundary = 
-    frontScreen.currentContext!.findRenderObject() as RenderRepaintBoundary;
+  RenderRepaintBoundary boundary =
+      frontScreen.currentContext!.findRenderObject() as RenderRepaintBoundary;
   ui.Image image = await boundary.toImage();
   File file = File(image.toString());
   screenshot.add(file);
+}
+
+class placeholder extends StatefulWidget {
+  int index;
+  placeholder({required int this.index, super.key});
+  @override
+  State<placeholder> createState() => _placeholderState();
+}
+
+class _placeholderState extends State<placeholder> {
+  
+  List<DraggableItem> draggableItems = [
+    DraggableItem(
+      id: 0,
+      offset: const Offset(100, 100),
+      child: Container(
+        width: 100,
+        height: 100,
+        color: Colors.blue,
+        child: const Center(
+          child: Text(
+            'Drag Me',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ),
+    )
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      child: ListView.builder(
+        itemBuilder: (context, index){
+          return Positioned(
+            left: draggableItems[index].offset.dx,
+            top: draggableItems[index].offset.dy,
+            child: Draggable<DraggableItem>(
+              data: draggableItems[index],
+              feedback: Opacity(
+                opacity: 0.7,
+                child: draggableItems[index].child,
+              ),
+              childWhenDragging: Opacity(
+                opacity: 0.3,
+                child: draggableItems[index].child,
+              ),
+              onDraggableCanceled: (Velocity velocity, Offset offset) {
+                setState(() {
+                  if (draggableItems[index].id == 0) {
+                    draggableItems.add(DraggableItem(
+                      id: widget.index,
+                      offset: offset,
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.blue,
+                        child: Center(
+                          child: Text(
+                            (widget.index).toString(),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ));
+                    widget.index++;
+                  } else if (draggableItems[index].id <= widget.index) {
+                    draggableItems[draggableItems[index].id] = DraggableItem(
+                      id: draggableItems[index].id,
+                      offset: offset,
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.blue,
+                        child: Center(
+                          child: Text(
+                            (widget.index).toString(),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                });
+              },
+              child: draggableItems[index].child,
+            ),
+          );
+        },
+        itemCount: draggableItems.length,
+      ),
+    );
+  }
 }

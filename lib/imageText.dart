@@ -1,9 +1,5 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:studyhelp/drawer.dart';
-import 'dart:ui' as ui;
 
 class Imagetext extends StatefulWidget {
   const Imagetext({super.key});
