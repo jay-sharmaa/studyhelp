@@ -21,21 +21,21 @@ class _MyFlowChartState extends State<MyFlowChart> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "FlowChart",
-          style: TextStyle(fontSize: 24, color: Colors.white),
-        ),
+      // appBar: AppBar(
+      //   title: const Text(
+      //     "FlowChart",
+      //     style: TextStyle(fontSize: 24, color: Colors.white),
+      //   ),
         backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.picture_as_pdf),
-            color: Colors.red,
-          )
-        ],
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
+        // actions: [
+        //   IconButton(
+        //     onPressed: () {},
+        //     icon: const Icon(Icons.picture_as_pdf),
+        //     color: Colors.red,
+        //   )
+        // ],
+        // iconTheme: const IconThemeData(color: Colors.white),
+      // ),
       body: RepaintBoundary(
         key: frontScreen,
         child: Column(
@@ -50,24 +50,24 @@ class _MyFlowChartState extends State<MyFlowChart> {
                     child: const Text("Generate ScreenShot"),
                   ),
                     
-                Expanded(child: placeholder(index: index)),
+                const Placeholder(),
                 const GridPaper(
                   color: Colors.grey,
                   child: SizedBox(
-                    height: 750,
+                    height: 650,
                     width: 450,
                   ),
                 )
               ],
             ),
             
-            ListView.builder(
-              itemBuilder: (context, index) {
-                return Image.file(screenshot[index]);
-              },
-              shrinkWrap: true,
-              itemCount: screenshot.length,
-            )
+            // ListView.builder(
+            //   itemBuilder: (context, index) {
+            //     return Image.file(screenshot[index]);
+            //   },
+            //   shrinkWrap: true,
+            //   itemCount: screenshot.length,
+            // )
           ],
         ),
       ),
@@ -96,15 +96,14 @@ takeScreenShot() async {
   screenshot.add(file);
 }
 
-class placeholder extends StatefulWidget {
-  int index;
-  placeholder({required int this.index, super.key});
+class Placeholder extends StatefulWidget {
+  const Placeholder({super.key});
   @override
-  State<placeholder> createState() => _placeholderState();
+  State<Placeholder> createState() => _placeholderState();
 }
 
-class _placeholderState extends State<placeholder> {
-  
+class _placeholderState extends State<Placeholder> {
+  int currindex = 0;
   List<DraggableItem> draggableItems = [
     DraggableItem(
       id: 0,
@@ -126,66 +125,65 @@ class _placeholderState extends State<placeholder> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
-      child: ListView.builder(
-        itemBuilder: (context, index){
-          return Positioned(
-            left: draggableItems[index].offset.dx,
-            top: draggableItems[index].offset.dy,
-            child: Draggable<DraggableItem>(
-              data: draggableItems[index],
-              feedback: Opacity(
-                opacity: 0.7,
-                child: draggableItems[index].child,
-              ),
-              childWhenDragging: Opacity(
-                opacity: 0.3,
-                child: draggableItems[index].child,
-              ),
-              onDraggableCanceled: (Velocity velocity, Offset offset) {
-                setState(() {
-                  if (draggableItems[index].id == 0) {
-                    draggableItems.add(DraggableItem(
-                      id: widget.index,
-                      offset: offset,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        color: Colors.blue,
-                        child: Center(
-                          child: Text(
-                            (widget.index).toString(),
-                            style: const TextStyle(color: Colors.white),
+      height: 650,
+      width: 450,
+      child: Stack(
+        children:[
+          for(var index in draggableItems)
+          Positioned(
+              left: index.offset.dx,
+              top: index.offset.dy,
+              child: Draggable<DraggableItem>(
+                data: index,
+                feedback: Opacity(
+                  opacity: 0.7,
+                  child: index.child,
+                ),
+                childWhenDragging: Opacity(
+                  opacity: 0.3,
+                  child: index.child,
+                ),
+                onDraggableCanceled: (Velocity velocity, Offset offset) {
+                  setState(() {
+                    if (index.id == 0) {
+                      draggableItems.add(DraggableItem(
+                        id: ++currindex,
+                        offset: offset,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          color: Colors.blue,
+                          child: Center(
+                            child: Text(
+                              ('$currindex ${index.id}'),
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
-                      ),
-                    ));
-                    widget.index++;
-                  } else if (draggableItems[index].id <= widget.index) {
-                    draggableItems[draggableItems[index].id] = DraggableItem(
-                      id: draggableItems[index].id,
-                      offset: offset,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        color: Colors.blue,
-                        child: Center(
-                          child: Text(
-                            (widget.index).toString(),
-                            style: const TextStyle(color: Colors.white),
+                      ));
+                    } else if(index.id <= currindex) {
+                      draggableItems[index.id] = DraggableItem(
+                        id: currindex,
+                        offset: offset,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          color: Colors.blue,
+                          child: Center(
+                            child: Text(
+                              ('$currindex ${index.id}'),
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }
-                });
-              },
-              child: draggableItems[index].child,
-            ),
-          );
-        },
-        itemCount: draggableItems.length,
+                      );
+                    }
+                  });
+                },
+                child: index.child,
+              ),
+            )
+          ]
       ),
     );
   }
