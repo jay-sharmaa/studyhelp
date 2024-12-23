@@ -16,40 +16,40 @@ GlobalKey frontScreen = GlobalKey();
 List<File> screenshot = [];
 
 class _MyFlowChartState extends State<MyFlowChart> {
-  int index = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text(
-      //     "FlowChart",
-      //     style: TextStyle(fontSize: 24, color: Colors.white),
-      //   ),
+      appBar: AppBar(
+        title: const Text(
+          "FlowChart",
+          style: TextStyle(fontSize: 24, color: Colors.white),
+        ),
         backgroundColor: Colors.black,
-        // actions: [
-        //   IconButton(
-        //     onPressed: () {},
-        //     icon: const Icon(Icons.picture_as_pdf),
-        //     color: Colors.red,
-        //   )
-        // ],
-        // iconTheme: const IconThemeData(color: Colors.white),
-      // ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.picture_as_pdf),
+            color: Colors.red,
+          )
+        ],
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: RepaintBoundary(
         key: frontScreen,
         child: Column(
           children: [
             Stack(
               children: [
-                TextButton(
+                Positioned(
+                  top: MediaQuery.of(context).size.height / 2,
+                  child: TextButton(
                     onPressed: () {
                       takeScreenShot();
                       setState(() {});
                     },
                     child: const Text("Generate ScreenShot"),
                   ),
-                    
+                ),
                 const Placeholder(),
                 const GridPaper(
                   color: Colors.grey,
@@ -60,14 +60,6 @@ class _MyFlowChartState extends State<MyFlowChart> {
                 )
               ],
             ),
-            
-            // ListView.builder(
-            //   itemBuilder: (context, index) {
-            //     return Image.file(screenshot[index]);
-            //   },
-            //   shrinkWrap: true,
-            //   itemCount: screenshot.length,
-            // )
           ],
         ),
       ),
@@ -80,8 +72,10 @@ class DraggableItem {
   final int id;
   final Offset offset;
   final Widget child;
+  String sampleText;
 
   DraggableItem({
+    this.sampleText = "SampleText",
     required this.id,
     required this.offset,
     required this.child,
@@ -103,14 +97,16 @@ class Placeholder extends StatefulWidget {
 }
 
 class _placeholderState extends State<Placeholder> {
-  int currindex = 0;
-  List<DraggableItem> draggableItems = [
+  int currSquareIndex = 0;
+  int currCircleIndex = 0;
+
+  List<DraggableItem> draggableItemsSquare = [
     DraggableItem(
       id: 0,
-      offset: const Offset(100, 100),
+      offset: const Offset(0, 0),
       child: Container(
-        width: 100,
-        height: 100,
+        width: 85,
+        height: 85,
         color: Colors.blue,
         child: const Center(
           child: Text(
@@ -122,69 +118,185 @@ class _placeholderState extends State<Placeholder> {
     )
   ];
 
+  List<DraggableItem> draggableItemsCircle = [
+    DraggableItem(
+      id: 0,
+      offset: const Offset(125, 0),
+      child: ClipOval(
+        child: Container(
+          width: 85,
+          height: 85,
+          color: Colors.blue,
+          child: const Center(
+            child: Text(
+              'Drag Me',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      ),
+    )
+  ];
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 650,
       width: 450,
-      child: Stack(
-        children:[
-          for(var index in draggableItems)
-          Positioned(
-              left: index.offset.dx,
-              top: index.offset.dy,
-              child: Draggable<DraggableItem>(
-                data: index,
-                feedback: Opacity(
-                  opacity: 0.7,
-                  child: index.child,
+      child: Column(
+        children: [
+          Expanded(
+            flex: 1,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                ClipOval(
+                  child: Container(
+                    width: 85,
+                    height: 85,
+                    color: Colors.blue,
+                    child: const Center(
+                      child: Text(
+                        'Drag Me',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
-                childWhenDragging: Opacity(
-                  opacity: 0.3,
-                  child: index.child,
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 6,
+            child: Stack(children: [
+              for (var index in draggableItemsSquare)
+                Positioned(
+                  left: index.offset.dx,
+                  top: index.offset.dy,
+                  child: Draggable<DraggableItem>(
+                    data: index,
+                    feedback: Opacity(
+                      opacity: 0.7,
+                      child: index.child,
+                    ),
+                    childWhenDragging: Opacity(
+                      opacity: 0.3,
+                      child: index.child,
+                    ),
+                    onDraggableCanceled: (Velocity velocity, Offset offset) {
+                      setState(() {
+                        Offset finalOffset = renderPosition(context, offset);
+                        if (index.id == 0) {
+                          draggableItemsSquare.add(DraggableItem(
+                            id: ++currSquareIndex,
+                            offset: finalOffset,
+                            child: Container(
+                              width: 85,
+                              height: 85,
+                              color: Colors.blue,
+                              child: Center(
+                                child: Text(
+                                  ('$currSquareIndex ${index.id}'),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ));
+                        } else if (index.id <= currSquareIndex) {
+                          draggableItemsSquare[index.id] = DraggableItem(
+                            id: index.id,
+                            offset: finalOffset,
+                            child: Container(
+                              width: 85,
+                              height: 85,
+                              color: Colors.blue,
+                              child: Center(
+                                child: Text(
+                                  ('$currSquareIndex ${index.id}'),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      });
+                    },
+                    child: index.child,
+                  ),
                 ),
-                onDraggableCanceled: (Velocity velocity, Offset offset) {
-                  setState(() {
-                    if (index.id == 0) {
-                      draggableItems.add(DraggableItem(
-                        id: ++currindex,
-                        offset: offset,
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          color: Colors.blue,
-                          child: Center(
-                            child: Text(
-                              ('$currindex ${index.id}'),
-                              style: const TextStyle(color: Colors.white),
+              for (var index in draggableItemsCircle)
+                Positioned(
+                  left: index.offset.dx,
+                  top: index.offset.dy,
+                  child: Draggable<DraggableItem>(
+                    data: index,
+                    feedback: Opacity(
+                      opacity: 0.7,
+                      child: index.child,
+                    ),
+                    childWhenDragging: Opacity(
+                      opacity: 0.3,
+                      child: index.child,
+                    ),
+                    onDraggableCanceled: (Velocity velocity, Offset offset) {
+                      setState(() {
+                        Offset finalOffset = renderPosition(context, offset);
+                        if (index.id == 0) {
+                          draggableItemsCircle.add(DraggableItem(
+                            id: ++currCircleIndex,
+                            offset: finalOffset,
+                            child: ClipOval(
+                              child: Container(
+                                width: 85,
+                                height: 85,
+                                color: Colors.blue,
+                                child: Center(
+                                  child: Text(
+                                    ('$currCircleIndex ${index.id}'),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ));
-                    } else if(index.id <= currindex) {
-                      draggableItems[index.id] = DraggableItem(
-                        id: currindex,
-                        offset: offset,
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          color: Colors.blue,
-                          child: Center(
-                            child: Text(
-                              ('$currindex ${index.id}'),
-                              style: const TextStyle(color: Colors.white),
+                          ));
+                        } else if (index.id <= currCircleIndex) {
+                          draggableItemsCircle[index.id] = DraggableItem(
+                            id: index.id,
+                            offset: finalOffset,
+                            child: ClipOval(
+                              child: Container(
+                                width: 85,
+                                height: 85,
+                                color: Colors.blue,
+                                child: Center(
+                                  child: Text(
+                                    ('$currCircleIndex ${index.id}'),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      );
-                    }
-                  });
-                },
-                child: index.child,
-              ),
-            )
-          ]
+                          );
+                        }
+                      });
+                    },
+                    child: index.child,
+                  ),
+                ),
+            ]),
+          ),
+        ],
       ),
     );
+  }
+
+  Offset renderPosition(BuildContext context, Offset offset) {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    Offset finalOffset = renderBox.globalToLocal(offset);
+    if(finalOffset.dy <= 50) {
+      return finalOffset;
+    } else{
+      return finalOffset - const Offset(0, 50);
+    }
   }
 }
