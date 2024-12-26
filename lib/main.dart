@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:studyhelp/drawer.dart';
 
@@ -27,7 +28,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final platform = const MethodChannel('images_from_flutter');
+
+  void sendData(dynamic data) async{
+    await platform.invokeListMethod('receive_data', data[0].toString());
+  }
+
   List<File> imagefile = [];
+  List<Uint8List> imageinbyte = [];
   int? toChange;
   @override
   Widget build(BuildContext context) {
@@ -43,7 +51,7 @@ class _HomePageState extends State<HomePage> {
               );
             }
             else{
-              
+              sendData(imageinbyte);
             }
           }, 
           icon: const Icon(Icons.picture_as_pdf), color: Colors.red,)
@@ -56,6 +64,8 @@ class _HomePageState extends State<HomePage> {
             final List<XFile> image = await picker.pickMultiImage();
             for(var img in image){
               imagefile.add(File(img.path));
+              var img_in_byte = await img.readAsBytes();
+              imageinbyte.add(img_in_byte);
             }
             setState(() {
               

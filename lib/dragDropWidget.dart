@@ -107,7 +107,7 @@ class _placeholderState extends State<placeHolder> {
             left: index.offset.dx,
             top: index.offset.dy,
             child: InkWell(
-              onTap: (){
+              onDoubleTap: (){
                 setState(() {
                   
                 });
@@ -173,7 +173,7 @@ class _placeholderState extends State<placeHolder> {
             left: index.offset.dx,
             top: index.offset.dy,
             child: InkWell(
-              onTap: (){
+              onDoubleTap: (){
                 points.add(index.offset);
               },
               child: Draggable<DraggableItem>(
@@ -239,7 +239,7 @@ class _placeholderState extends State<placeHolder> {
             left: index.offset.dx,
             top: index.offset.dy,
             child: InkWell(
-              onTap: (){
+              onDoubleTap: (){
                 points.add(index.offset);
                 setState(() {
                   
