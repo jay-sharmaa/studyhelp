@@ -31,11 +31,11 @@ class _HomePageState extends State<HomePage> {
   final platform = const MethodChannel('images_from_flutter');
 
   void sendData(dynamic data) async{
-    await platform.invokeListMethod('receive_data', data[0].toString());
+    await platform.invokeMethod('receive_data', data);
   }
 
   List<File> imagefile = [];
-  List<Uint8List> imageinbyte = [];
+  Map<int, Uint8List> imageinbyte = {};
   int? toChange;
   @override
   Widget build(BuildContext context) {
@@ -62,10 +62,10 @@ class _HomePageState extends State<HomePage> {
         onPressed: () async {
             final ImagePicker picker = ImagePicker();
             final List<XFile> image = await picker.pickMultiImage();
-            for(var img in image){
-              imagefile.add(File(img.path));
-              var img_in_byte = await img.readAsBytes();
-              imageinbyte.add(img_in_byte);
+            for(int i = 0;i<image.length;i++){
+              imagefile.add(File(image[i].path));
+              var img_in_byte = await image[i].readAsBytes();
+              imageinbyte[i] = img_in_byte;
             }
             setState(() {
               
