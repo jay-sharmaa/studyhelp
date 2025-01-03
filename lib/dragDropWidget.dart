@@ -94,7 +94,6 @@ class _placeholderState extends State<placeHolder> {
 
   @override
   Widget build(BuildContext context) {
-    
     return SizedBox(
       height: 780,
       width: 450,
@@ -174,6 +173,9 @@ class _placeholderState extends State<placeHolder> {
             top: index.offset.dy,
             child: InkWell(
               onDoubleTap: (){
+                setState(() {
+                  
+                });
                 points.add(index.offset);
               },
               child: Draggable<DraggableItem>(

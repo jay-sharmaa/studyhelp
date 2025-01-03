@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:studyhelp/drawer.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 void main() {
   runApp(const MyApp());
 }
+
+final pdf = pw.Document();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -28,13 +33,14 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-String text = "";
+List<String> text = [];
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final platform = const MethodChannel('images_from_flutter');
   final ImagePicker picker = ImagePicker();
   double endX = 340;
   double endY = 715;
+  TextEditingController _controller = TextEditingController();
 
   late final AnimationController _controllerRotate = AnimationController(
     upperBound: 0.13,
@@ -58,33 +64,51 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void sendData(dynamic data) async {
-    await platform.invokeMethod('receive_data', data);
-  }
-
-  Future<void> _processImage(File file) async {
-    final inputImage = InputImage.fromFile(file);
-    final textRecongnizer = TextRecognizer();
-    final RecognizedText recognizedText =
-        await textRecongnizer.processImage(inputImage);
-    List<TextBlock> extractedText = recognizedText.blocks;
-    for (TextBlock block in extractedText) {
-      for (TextLine line in block.lines) {
-        for(TextElement element in line.elements){
-          text += element.text;
-          text += ' ';
+  Future<void> _processImage(List<File> files) async {
+    for (int i = 0;i<files.length;i++) {
+      final inputImage = InputImage.fromFile(files[i]);
+      final textRecongnizer = TextRecognizer();
+      final RecognizedText recognizedText =
+          await textRecongnizer.processImage(inputImage);
+      List<TextBlock> extractedText = recognizedText.blocks;
+      for (TextBlock block in extractedText) {
+        String textIndex = "";
+        for (TextLine line in block.lines) {
+          for (TextElement element in line.elements) {
+            textIndex += element.text;
+            textIndex += ' ';
+          }
+          textIndex += '\n';
         }
-        text += '\n';
+        text.add(textIndex);
       }
     }
   }
 
+  void _createPDF(List<File> files, String fileName) async{
+    final Directory? _directory = await getDownloadsDirectory();
+    for(int i = 0;i<files.length;i++){
+      final image = pw.MemoryImage(files[i].readAsBytesSync());
+      pdf.addPage(
+        pw.Page(build: (pw.Context context){
+          return pw.Container(
+            child: pw.Image(image),
+          );
+        })
+      );
+    }
+
+    final file = File("${_directory!.path}/$fileName.pdf");
+    print(file.path);
+    await file.writeAsBytes(await pdf.save());
+  }
+
   List<File> imageFile = [];
-  Map<int, Uint8List> imageInByte = {};
   int? toChange;
   var set = 0;
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -123,20 +147,38 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 case 'image_text':
                   if (imageFile.isEmpty) {
                     showSnackBar(context, 'Select At least 1 Image');
-                  } else if (imageFile.length > 1) {
-                    showSnackBar(context, 'Select 1 Image Only');
                   } else {
-                    setState(() {
-                      
-                    });
-                    _processImage(imageFile[0]);
+                    setState(() {});
+                    _processImage(imageFile);
                   }
                   break;
                 case 'pdf':
                   if (imageFile.isEmpty) {
                     showSnackBar(context, 'Select At least 1 Image');
                   } else {
-                    sendData(imageInByte);
+                    showDialog(context: context, builder: (context){
+                      return AlertDialog(
+                        title: const Text("File Name"),
+                        content: TextField(
+                          controller: _controller,
+                        ),
+                        actions: [
+                          GestureDetector(
+                            onTap: (){
+                              if(_controller.text != ""){
+                              _createPDF(imageFile, _controller.text);
+                              _controller.dispose();
+                              Navigator.pop(context);
+                              }
+                              else{
+                              showSnackBar(context, "File Name Cannot Be Empty");
+                              }
+                            },
+                            child: const Text("Save")
+                          )
+                        ],
+                      );
+                    });
                   }
                   break;
               }
@@ -168,7 +210,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           )),
       drawer: const MyDrawer(),
       body: Stack(children: [
-        Text(text),
         GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3),
@@ -263,7 +304,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       for (int i = 0; i < image.length; i++) {
                         imageFile.add(File(image[i].path));
                         var img_in_byte = await image[i].readAsBytes();
-                        imageInByte[i] = img_in_byte;
                       }
                       setState(() {});
                     },
