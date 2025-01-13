@@ -68,7 +68,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       
     });
     _file = io.Directory(_directory).listSync();
-    print(_file);
   }
 
   Future<void> _processImage(List<File> files) async {
@@ -107,7 +106,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
 
     final file = File("${_directory!.path}/$fileName.pdf");
-    print(file.path);
     await file.writeAsBytes(await pdf.save());
   }
 
@@ -342,7 +340,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   endX = 340;
                   set = 0;
                   setState(() {
-                    print("hello");
                   });
                   if (image.isEmpty) return;
                   for (int i = 0; i < image.length; i++) {
