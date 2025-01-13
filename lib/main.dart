@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -7,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:studyhelp/drawer.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:studyhelp/utils.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,8 +41,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final platform = const MethodChannel('images_from_flutter');
   final ImagePicker picker = ImagePicker();
   double endX = 340;
-  double endY = 715;
+  double endY = 640;
   TextEditingController _controller = TextEditingController();
+  String _directory = "";
+  List _file = [];
 
   late final AnimationController _controllerRotate = AnimationController(
     upperBound: 0.13,
@@ -57,15 +61,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _controllerRotate.animateTo(0.0,
         duration: const Duration(milliseconds: 250));
   }
-
-  @override
-  void dispose() {
-    _controllerRotate.dispose();
-    super.dispose();
+  
+  void _listOfFiles() async {
+    _directory = (await getDownloadsDirectory())!.path;
+    setState(() {
+      
+    });
+    _file = io.Directory(_directory).listSync();
+    print(_file);
   }
 
   Future<void> _processImage(List<File> files) async {
-    for (int i = 0;i<files.length;i++) {
+    for (int i = 0; i < files.length; i++) {
       final inputImage = InputImage.fromFile(files[i]);
       final textRecongnizer = TextRecognizer();
       final RecognizedText recognizedText =
@@ -85,17 +92,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
-  void _createPDF(List<File> files, String fileName) async{
+  void _createPDF(List<File> files, String fileName) async {
     final Directory? _directory = await getDownloadsDirectory();
-    for(int i = 0;i<files.length;i++){
+    for (int i = 0; i < files.length; i++) {
       final image = pw.MemoryImage(files[i].readAsBytesSync());
-      pdf.addPage(
-        pw.Page(build: (pw.Context context){
-          return pw.Container(
-            child: pw.Image(image),
-          );
-        })
-      );
+      pdf.addPage(pw.Page(
+          build: (pw.Context context) {
+            return pw.Container(
+              child: pw.Image(image),
+            );
+          },
+          pageFormat: PdfPageFormat.a4));
+      _controller.dispose();
     }
 
     final file = File("${_directory!.path}/$fileName.pdf");
@@ -107,8 +115,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int? toChange;
   var set = 0;
   @override
+  void dispose() {
+    _controllerRotate.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    _listOfFiles();
+    super.initState();
+  }
+  
+  @override
   Widget build(BuildContext context) {
-    
+    _controller = TextEditingController();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -156,29 +177,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   if (imageFile.isEmpty) {
                     showSnackBar(context, 'Select At least 1 Image');
                   } else {
-                    showDialog(context: context, builder: (context){
-                      return AlertDialog(
-                        title: const Text("File Name"),
-                        content: TextField(
-                          controller: _controller,
-                        ),
-                        actions: [
-                          GestureDetector(
-                            onTap: (){
-                              if(_controller.text != ""){
-                              _createPDF(imageFile, _controller.text);
-                              _controller.dispose();
-                              Navigator.pop(context);
-                              }
-                              else{
-                              showSnackBar(context, "File Name Cannot Be Empty");
-                              }
-                            },
-                            child: const Text("Save")
-                          )
-                        ],
-                      );
-                    });
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text("File Name"),
+                            content: TextField(
+                              controller: _controller,
+                            ),
+                            actions: [
+                              GestureDetector(
+                                  onTap: () {
+                                    if (_controller.text != "") {
+                                      _createPDF(imageFile, _controller.text);
+                                      Navigator.pop(context);
+                                    } else {
+                                      showSnackBar(
+                                          context, "File Name Cannot Be Empty");
+                                    }
+                                  },
+                                  child: const Text("Save"))
+                            ],
+                          );
+                        });
                   }
                   break;
               }
@@ -192,13 +213,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             if (set == 0) {
               setState(() {});
               _controllerRotate.forward(from: 0);
-              endY = 655;
+              endY = 570;
               endX = 280;
               set = 1;
             } else {
               setState(() {});
               resetToOriginalPosition();
-              endY = 715;
+              endY = 640;
               endX = 340;
               set = 0;
             }
@@ -209,7 +230,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: const Icon(Icons.add, color: Colors.black),
           )),
       drawer: const MyDrawer(),
-      body: Stack(children: [
+      body: Column(
+        children: [
+          SizedBox(height: 80, child: DecoratedContainer(_file, context)),
+          SizedBox(height: 700, child: mainScreen())
+        ],
+      )
+    );
+  }
+
+  Widget mainScreen(){
+  return 
+      Stack(children: [
         GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3),
@@ -281,9 +313,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   onTap: () async {
                     final image =
                         await picker.pickImage(source: ImageSource.camera);
+                        resetToOriginalPosition();
+                      endY = 640;
+                      endX = 340;
+                      set = 0;
+                      setState(() {});
                     if (image == null) return;
                     imageFile.add(File(image.path));
-                    setState(() {});
+                    
                   },
                   child: iconContainer(Icons.camera_alt)),
             );
@@ -295,23 +332,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           duration: const Duration(milliseconds: 250),
           builder: (BuildContext context, double value, Widget? child) {
             return Positioned(
-                left: value,
-                top: 715,
-                child: GestureDetector(
-                    onTap: () async {
-                      final List<XFile> image = await picker.pickMultiImage();
-                      if (image.isEmpty) return;
-                      for (int i = 0; i < image.length; i++) {
-                        imageFile.add(File(image[i].path));
-                        var img_in_byte = await image[i].readAsBytes();
-                      }
-                      setState(() {});
-                    },
-                    child: iconContainer(Icons.file_open)));
+              left: value,
+              top: 640,
+              child: GestureDetector(
+                onTap: () async {
+                  final List<XFile> image = await picker.pickMultiImage();
+                  resetToOriginalPosition();
+                  endY = 640;
+                  endX = 340;
+                  set = 0;
+                  setState(() {
+                    print("hello");
+                  });
+                  if (image.isEmpty) return;
+                  for (int i = 0; i < image.length; i++) {
+                    imageFile.add(File(image[i].path));
+                  }
+                },
+                child: iconContainer(Icons.file_open),
+              ),
+            );
           },
           child: iconContainer(Icons.file_open),
         ),
-      ]),
+      ],
     );
   }
 }
@@ -340,3 +384,4 @@ void showSnackBar(BuildContext context, String message) {
     ),
   );
 }
+

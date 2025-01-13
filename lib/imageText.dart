@@ -14,8 +14,8 @@ class Imagetext extends StatefulWidget {
 }
 
 class _ImagetextState extends State<Imagetext> {
-  List<TextEditingController> _textEditingController = [];
-  TextEditingController _controller = TextEditingController();
+  final List<TextEditingController> _textEditingController = [];
+  final TextEditingController _controller = TextEditingController();
   @override
   void initState() {
     _initializeControlers();
@@ -29,19 +29,19 @@ class _ImagetextState extends State<Imagetext> {
   }
 
   void _createPDF(List<String> pages, String fileName) async {
-    final Directory? _directory = await getDownloadsDirectory();
+    final Directory? directory = await getDownloadsDirectory();
     for (int i = 0; i < pages.length; i++) {
       pdf.addPage(pw.Page(
         build: (pw.Context context) {
           return pw.Container(
-            child: pw.Text(pages[i], style: pw.TextStyle(fontSize: 10)),
+            child: pw.Text(pages[i], style: const pw.TextStyle(fontSize: 10)),
           );
         },
         pageFormat: PdfPageFormat.a4,
       ));
     }
 
-    final file = File("${_directory!.path}/$fileName.pdf");
+    final file = File("${directory!.path}/$fileName.pdf");
     try {
       await file.writeAsBytes(await pdf.save());
     } on Exception catch (_) {
