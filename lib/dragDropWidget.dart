@@ -1,320 +1,260 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-class DraggableItem {
-  final int id;
-  final Offset offset;
-  final Widget child;
-  String sampleText;
-  Color color;
+enum ShapeType { square, circle, rhombus }
 
-  DraggableItem({
-    this.sampleText = "SampleText",
+class Connection {
+  final DraggableItem from;
+  final DraggableItem to;
+  final Color color;
+
+  Connection({
+    required this.from,
+    required this.to,
     this.color = Colors.black,
-    required this.id,
-    required this.offset,
-    required this.child,
   });
 }
 
-class placeHolder extends StatefulWidget {
-  const placeHolder({super.key});
-  @override
-  State<placeHolder> createState() => _placeholderState();
-}
+class DraggableItem {
+  final int id;
+  Offset offset;
+  final Widget child;
+  final ShapeType type;
+  final Color color;
 
-class _placeholderState extends State<placeHolder> {
-  int currSquareIndex = 0;
-  int currCircleIndex = 0;
-  int currRhombusIndex = 0;
-  List<Offset> points = [];
+  DraggableItem({
+    required this.id,
+    required this.offset,
+    required this.child,
+    required this.type,
+    required this.color,
+  });
 
-  List<DraggableItem> draggableItemsSquare = [
-    DraggableItem(
-      id: 0,
-      offset: const Offset(15, 10),
-      child: Container(
-        width: 85,
-        height: 85,
-        color: Colors.yellow,
-        child: const Center(
-          child: Text(
-            'Drag Me',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ),
-    )
-  ];
-
-  List<DraggableItem> draggableItemsCircle = [
-    DraggableItem(
-      id: 0,
-      offset: const Offset(130, 10),
-      child: ClipOval(
-        child: Container(
-          width: 85,
-          height: 85,
-          color: Colors.yellow.shade300,
-          child: const Center(
-            child: Text(
-              'Drag Me',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-      ),
-    )
-  ];
-
-  List<DraggableItem> draggableItemsRhombus = [
-    DraggableItem(
-        id: 0,
-        color: Colors.yellow.shade500,
-        offset: const Offset(250, 28.37),
-        child: Transform.rotate(
-          angle: math.pi / 4,
+  factory DraggableItem.createShape({
+    required int id,
+    required Offset offset,
+    required ShapeType type,
+    required String label,
+  }) {
+    switch (type) {
+      case ShapeType.square:
+        return DraggableItem(
+          id: id,
+          offset: offset,
+          type: type,
+          color: Colors.yellow,
           child: Container(
             width: 85,
             height: 85,
-            color: Colors.yellow.shade500,
+            color: Colors.yellow,
             child: Center(
-              child: Transform.rotate(
-                angle: -math.pi/4,
-                child: const Text(
-                  'Drag Me',
-                  style: TextStyle(color: Colors.white),
+              child: Text(label, style: const TextStyle(color: Colors.white)),
+            ),
+          ),
+        );
+      
+      case ShapeType.circle:
+        return DraggableItem(
+          id: id,
+          offset: offset,
+          type: type,
+          color: Colors.yellow.shade300,
+          child: ClipOval(
+            child: Container(
+              width: 85,
+              height: 85,
+              color: Colors.yellow.shade300,
+              child: Center(
+                child: Text(label, style: const TextStyle(color: Colors.white)),
+              ),
+            ),
+          ),
+        );
+      
+      case ShapeType.rhombus:
+        return DraggableItem(
+          id: id,
+          offset: offset,
+          type: type,
+          color: Colors.yellow.shade500,
+          child: Transform.rotate(
+            angle: math.pi / 4,
+            child: Container(
+              width: 85,
+              height: 85,
+              color: Colors.yellow.shade500,
+              child: Center(
+                child: Transform.rotate(
+                  angle: -math.pi / 4,
+                  child: Text(label, style: const TextStyle(color: Colors.white)),
                 ),
               ),
             ),
           ),
-        ))
-  ];
+        );
+    }
+  }
+
+  Offset get centerOffset {
+    return Offset(
+      offset.dx + 42.5,
+      offset.dy + 42.5,
+    );
+  }
+}
+
+class PlaceHolder extends StatefulWidget {
+  const PlaceHolder({super.key});
+  @override
+  State<PlaceHolder> createState() => _PlaceHolderState();
+}
+
+class _PlaceHolderState extends State<PlaceHolder> {
+  final Map<ShapeType, List<DraggableItem>> items = {
+    ShapeType.square: [],
+    ShapeType.circle: [],
+    ShapeType.rhombus: [],
+  };
+  
+  final Map<ShapeType, int> counters = {
+    ShapeType.square: 0,
+    ShapeType.circle: 0,
+    ShapeType.rhombus: 0,
+  };
+
+  final List<Connection> connections = [];
+  DraggableItem? selectedNode;
+
+  List<Offset> points = [];
+
+  @override
+  void initState() {
+    super.initState();
+    items[ShapeType.square]!.add(DraggableItem.createShape(
+      id: 0,
+      offset: const Offset(15, 10),
+      type: ShapeType.square,
+      label: 'Drag Me',
+    ));
+    
+    items[ShapeType.circle]!.add(DraggableItem.createShape(
+      id: 0,
+      offset: const Offset(130, 10),
+      type: ShapeType.circle,
+      label: 'Drag Me',
+    ));
+    
+    items[ShapeType.rhombus]!.add(DraggableItem.createShape(
+      id: 0,
+      offset: const Offset(250, 28.37),
+      type: ShapeType.rhombus,
+      label: 'Drag Me',
+    ));
+  }
+
+  void _handleDragEnd(DraggableItem item, Offset offset) {
+  setState(() {
+    final finalOffset = renderPosition(context, offset);
+    
+    if (item.id == 0) {
+      // Handle dragging from palette (creating new item)
+      counters[item.type] = counters[item.type]! + 1;
+      items[item.type]!.add(DraggableItem.createShape(
+        id: counters[item.type]!,
+        offset: finalOffset,
+        type: item.type,
+        label: '${counters[item.type]} ${item.id}',
+      ));
+    } else {
+      // Handle dragging existing items
+      final index = items[item.type]!.indexWhere((i) => i.id == item.id);
+      if (index != -1) {
+        // Update the dragged item's position
+        final updatedItem = DraggableItem.createShape(
+          id: item.id,
+          offset: finalOffset,
+          type: item.type,
+          label: '${counters[item.type]} ${item.id}',
+        );
+        items[item.type]![index] = updatedItem;
+        
+        // Update all connections involving this item
+        for (var connection in connections) {
+          if (connection.from.id == item.id) {
+            connection.from.offset = finalOffset;
+          }
+          if (connection.to.id == item.id) {
+            connection.to.offset = finalOffset;
+          }
+        }
+      }
+    }
+  });
+}
+
+  void _handleNodeTap(DraggableItem item) {
+    setState(() {
+      if (selectedNode == null) {
+        selectedNode = item;
+      } else if (selectedNode != item) {
+        connections.add(Connection(
+          from: selectedNode!,
+          to: item,
+        ));
+        selectedNode = null;
+      } else {
+        selectedNode = null;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 780,
       width: 450,
-      child: Stack(children: [
-        CustomPaint(
-          painter: CustomLine(points: points),
-        ),
-        for (var index in draggableItemsSquare)
-          Positioned(
-            left: index.offset.dx,
-            top: index.offset.dy,
-            child: InkWell(
-              onDoubleTap: (){
-                setState(() {
-                  
-                });
-                points.add(index.offset);
-              },
-              child: Draggable<DraggableItem>(
-                data: index,
-                feedback: Opacity(
-                  opacity: 0.7,
-                  child: Material(child: index.child),
-                ),
-                childWhenDragging: Opacity(
-                  opacity: 0.3,
-                  child: Material(child: index.child),
-                ),
-                onDraggableCanceled: (Velocity velocity, Offset offset) {
-                  setState(() {
-                    Offset finalOffset = renderPosition(context, offset);
-                    if (index.id == 0) {
-                      draggableItemsSquare.add(DraggableItem(
-                        id: ++currSquareIndex,
-                        color: Colors.yellow,
-                        offset: finalOffset,
-                        child: Container(
-                          width: 85,
-                          height: 85,
-                          color: Colors.yellow,
-                          child: Center(
-                            child: Text(
-                              ('$currSquareIndex ${index.id}'),
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ));
-                    } else if (index.id <= currSquareIndex) {
-                      draggableItemsSquare[index.id] = DraggableItem(
-                        id: index.id,
-                        color: Colors.yellow,
-                        offset: finalOffset,
-                        child: Container(
-                          width: 85,
-                          height: 85,
-                          color: Colors.yellow,
-                          child: Center(
-                            child: Text(
-                              ('$currSquareIndex ${index.id}'),
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                    
-                  });
-                },
-                child: index.child,
-              ),
+      child: Stack(
+        children: [CustomPaint(
+            painter: ConnectionPainter(
+              connections: connections,
+              selectedNode: selectedNode,
             ),
           ),
-        for (var index in draggableItemsCircle)
-          Positioned(
-            left: index.offset.dx,
-            top: index.offset.dy,
-            child: InkWell(
-              onDoubleTap: (){
-                setState(() {
-                  
-                });
-                points.add(index.offset);
-              },
-              child: Draggable<DraggableItem>(
-                data: index,
-                feedback: Opacity(
-                  opacity: 0.7,
-                  child: Material(child: index.child),
+          ...items.entries.expand((entry) => entry.value.map((item) => 
+            Positioned(
+              left: item.offset.dx,
+              top: item.offset.dy,
+              child: GestureDetector(
+                onTap: () => _handleNodeTap(item),
+                child: Draggable<DraggableItem>(
+                  data: item,
+                  feedback: Opacity(
+                    opacity: 0.7,
+                    child: Material(child: item.child),
+                  ),
+                  childWhenDragging: Opacity(
+                    opacity: 0.3,
+                    child: Material(child: item.child),
+                  ),
+                  onDraggableCanceled: (velocity, offset) => 
+                    _handleDragEnd(item, offset),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: selectedNode?.id == item.id 
+                          ? Colors.blue 
+                          : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: item.child,
+                  ),
                 ),
-                childWhenDragging: Opacity(
-                  opacity: 0.3,
-                  child: index.child,
-                ),
-                onDraggableCanceled: (Velocity velocity, Offset offset) {
-                  setState(() {
-                    Offset finalOffset = renderPosition(context, offset);
-                    if (index.id == 0) {
-                      draggableItemsCircle.add(DraggableItem(
-                        id: ++currCircleIndex,
-                        color: Colors.yellow.shade300,
-                        offset: finalOffset,
-                        child: ClipOval(
-                          child: Container(
-                            width: 85,
-                            height: 85,
-                            color: Colors.yellow.shade300,
-                            child: Center(
-                              child: Text(
-                                ('$currCircleIndex ${index.id}'),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ));
-                    } else if (index.id <= currCircleIndex) {
-                      draggableItemsCircle[index.id] = DraggableItem(
-                        id: index.id,
-                        color: Colors.yellow.shade300,
-                        offset: finalOffset,
-                        child: ClipOval(
-                          child: Container(
-                            width: 85,
-                            height: 85,
-                            color: Colors.yellow.shade300,
-                            child: Center(
-                              child: Text(
-                                ('$currCircleIndex ${index.id}'),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                  });
-                },
-                child: index.child,
               ),
             ),
-          ),
-        for (var index in draggableItemsRhombus)
-          Positioned(
-            left: index.offset.dx,
-            top: index.offset.dy,
-            child: InkWell(
-              onDoubleTap: (){
-                points.add(index.offset);
-                setState(() {
-                  
-                });
-              },
-              child: Draggable<DraggableItem>(
-                data: index,
-                feedback: Opacity(
-                  opacity: 0.7,
-                  child: Material(child: index.child),
-                ),
-                childWhenDragging: Opacity(
-                  opacity: 0.3,
-                  child: index.child,
-                ),
-                onDraggableCanceled: (Velocity velocity, Offset offset) {
-                  setState(() {
-                    Offset finalOffset = renderPosition(context, offset);
-                    if (index.id == 0) {
-                      draggableItemsRhombus.add(
-                        DraggableItem(
-                          id: ++currRhombusIndex,
-                          color: Colors.yellow.shade500,
-                          offset: finalOffset,
-                          child: Transform.rotate(
-                            angle: math.pi / 4,
-                            child: Container(
-                              width: 85,
-                              height: 85,
-                              color: Colors.yellow.shade500,
-                              child: Center(
-                                child: Transform.rotate(
-                                  angle: -math.pi / 4,
-                                  child: Text(
-                                    ('$currRhombusIndex ${index.id}'),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    } else if (index.id <= currRhombusIndex) {
-                      draggableItemsRhombus[index.id] = DraggableItem(
-                        id: index.id,
-                        color: Colors.yellow.shade500,
-                        offset: finalOffset,
-                        child: Transform.rotate(
-                          angle: math.pi / 4,
-                          child: Container(
-                            width: 85,
-                            height: 85,
-                            color: Colors.yellow.shade500,
-                            child: Center(
-                              child: Transform.rotate(
-                                angle: -math.pi / 4,
-                                child: Text(
-                                  ('$currRhombusIndex ${index.id}'),
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                  });
-                },
-                child: index.child,
-              ),
-            ),
-          ),
-      ]),
+          )).toList(),
+        ],
+      ),
     );
   }
 
@@ -328,24 +268,53 @@ class _placeholderState extends State<placeHolder> {
   }
 }
 
+class ConnectionPainter extends CustomPainter {
+  final List<Connection> connections;
+  final DraggableItem? selectedNode;
 
-class CustomLine extends CustomPainter{
-  CustomLine({required this.points});
-  final _paint = Paint()..color = Colors.black ..style = PaintingStyle.fill ..strokeWidth = 5;
-  List<Offset> points = [];
-
+  ConnectionPainter({
+    required this.connections,
+    this.selectedNode,
+  });
 
   @override
-  void paint(Canvas canvas, Size size){
-    if (points.length < 2) return;
-    for (int i = 0; i < points.length - 1; i++) {
-      canvas.drawLine(points[i], points[i + 1], _paint);
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    for (final connection in connections) {
+      final start = connection.from.centerOffset;
+      final end = connection.to.centerOffset;
+      
+      canvas.drawLine(start, end, paint);
+      
+      _drawArrow(canvas, start, end, paint);
+    }
+
+    if (selectedNode != null) {
+      paint.color = Colors.blue;
+      paint.strokeWidth = 1;
     }
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    print('Repaint...');
-    return true;
+  void _drawArrow(Canvas canvas, Offset start, Offset end, Paint paint) {
+    const arrowSize = 15.0;
+    final delta = end - start;
+    final angle = math.atan2(delta.dy, delta.dx);
+    
+    final arrowPath = Path()
+      ..moveTo(end.dx - arrowSize * math.cos(angle - math.pi / 6),
+               end.dy - arrowSize * math.sin(angle - math.pi / 6))
+      ..lineTo(end.dx, end.dy)
+      ..lineTo(end.dx - arrowSize * math.cos(angle + math.pi / 6),
+               end.dy - arrowSize * math.sin(angle + math.pi / 6))
+      ..close();
+    
+    canvas.drawPath(arrowPath, paint..style = PaintingStyle.fill);
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

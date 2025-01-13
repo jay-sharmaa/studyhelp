@@ -51,7 +51,7 @@ class _MyFlowChartState extends State<MyFlowChart> {
                     child: const Text("Generate ScreenShot"),
                   ),
                 ),
-                const placeHolder(),
+                const PlaceHolder(),
                 const GridPaper(
                   color: Colors.grey,
                   child: SizedBox(
