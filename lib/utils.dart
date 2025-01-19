@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 
 Widget DecoratedContainer(List<dynamic> fileName, BuildContext context) {
   return SingleChildScrollView(
@@ -26,9 +27,9 @@ Widget DecoratedContainer(List<dynamic> fileName, BuildContext context) {
                 child: GestureDetector(
                   child: Text(file.toString()),
                   onTap: (){
-                    // Navigator.push(context, MaterialPageRoute(builder: (context){
-                      
-                    // }));
+                    Navigator.push(context, MaterialPageRoute(builder: (context){
+                      return PDFView(filePath: file.toString());
+                    }));
                   }
                   ),
               ),

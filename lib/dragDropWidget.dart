@@ -157,7 +157,6 @@ class _PlaceHolderState extends State<PlaceHolder> {
     final finalOffset = renderPosition(context, offset);
     
     if (item.id == 0) {
-      // Handle dragging from palette (creating new item)
       counters[item.type] = counters[item.type]! + 1;
       items[item.type]!.add(DraggableItem.createShape(
         id: counters[item.type]!,
@@ -166,10 +165,8 @@ class _PlaceHolderState extends State<PlaceHolder> {
         label: '${counters[item.type]} ${item.id}',
       ));
     } else {
-      // Handle dragging existing items
       final index = items[item.type]!.indexWhere((i) => i.id == item.id);
       if (index != -1) {
-        // Update the dragged item's position
         final updatedItem = DraggableItem.createShape(
           id: item.id,
           offset: finalOffset,
@@ -177,8 +174,6 @@ class _PlaceHolderState extends State<PlaceHolder> {
           label: '${counters[item.type]} ${item.id}',
         );
         items[item.type]![index] = updatedItem;
-        
-        // Update all connections involving this item
         for (var connection in connections) {
           if (connection.from.id == item.id) {
             connection.from.offset = finalOffset;
@@ -252,7 +247,7 @@ class _PlaceHolderState extends State<PlaceHolder> {
                 ),
               ),
             ),
-          )).toList(),
+          )),
         ],
       ),
     );
