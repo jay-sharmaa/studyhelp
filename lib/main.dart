@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,7 +11,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:studyhelp/utils.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Future.delayed(const Duration(seconds: 2));
+  FlutterNativeSplash.remove();
   runApp(const MyApp());
 }
 
@@ -38,7 +42,6 @@ class HomePage extends StatefulWidget {
 List<String> text = [];
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  final platform = const MethodChannel('images_from_flutter');
   final ImagePicker picker = ImagePicker();
   double endX = 340;
   double endY = 640;

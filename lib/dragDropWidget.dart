@@ -188,20 +188,32 @@ class _PlaceHolderState extends State<PlaceHolder> {
 }
 
   void _handleNodeTap(DraggableItem item) {
-    setState(() {
-      if (selectedNode == null) {
-        selectedNode = item;
-      } else if (selectedNode != item) {
-        connections.add(Connection(
-          from: selectedNode!,
-          to: item,
-        ));
-        selectedNode = null;
-      } else {
-        selectedNode = null;
-      }
-    });
-  }
+  setState(() {
+    if (selectedNode == null) {
+      selectedNode = item;
+    } else if (selectedNode != item) {
+      connections.add(Connection(
+        from: DraggableItem(
+          id: selectedNode!.id,
+          offset: selectedNode!.offset,
+          child: selectedNode!.child,
+          type: selectedNode!.type,
+          color: selectedNode!.color,
+        ),
+        to: DraggableItem(
+          id: item.id,
+          offset: item.offset,
+          child: item.child,
+          type: item.type,
+          color: item.color,
+        ),
+      ));
+      selectedNode = null;
+    } else {
+      selectedNode = null;
+    }
+  });
+}
 
   @override
   Widget build(BuildContext context) {
