@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:studyhelp/aiapicall.dart';
 import 'package:studyhelp/drawer.dart';
 import 'package:studyhelp/main.dart';
 
@@ -16,6 +17,9 @@ class Imagetext extends StatefulWidget {
 class _ImagetextState extends State<Imagetext> {
   final List<TextEditingController> _textEditingController = [];
   final TextEditingController _controller = TextEditingController();
+
+  late Map<String, List<dynamic>> resultMap;
+
   @override
   void initState() {
     _initializeControlers();
@@ -127,11 +131,24 @@ class _ImagetextState extends State<Imagetext> {
                 height: 50,
                 child: Stack(
                   children: [
-                    AnimatedGradientContainer(), // Make sure this is imported
-                    const Center(
-                      child: Text(
-                        "Generate Algorithm",
-                        style: TextStyle(fontSize: 18),
+                    AnimatedGradientContainer(),
+                    Center(
+                      child: InkWell(
+                        onTap: () async{
+                          String prompt = "";
+                          for(int i = 0;i<text.length;i++){
+                            prompt += text[i];
+                          }
+                          resultMap = await generateContent(prompt) as Map<String, List<dynamic>>;
+                          showDialog(context: context, builder: (context){
+                            var temp = resultMap['x'];
+                            return Text(temp![0]);
+                          });
+                        },
+                        child: const Text(
+                          "Generate Algorithm",
+                          style: TextStyle(fontSize: 18),
+                        ),
                       ),
                     )
                   ],
