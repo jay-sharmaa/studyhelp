@@ -27,9 +27,9 @@ Widget DecoratedContainer(List<dynamic> fileName, BuildContext context) {
                 child: GestureDetector(
                   child: Text(file.toString()),
                   onTap: (){
-                    // Navigator.push(context, MaterialPageRoute(builder: (context){
-                    //   return PDFViewer(filePath: file.toString());
-                    // }));
+                    Navigator.push(context, MaterialPageRoute(builder: (context){
+                      return PDFViewer(filePath: file.toString());
+                    }));
                   }
                   ),
               ),

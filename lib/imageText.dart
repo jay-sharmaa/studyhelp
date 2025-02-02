@@ -4,8 +4,15 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:studyhelp/aiapicall.dart';
+import 'package:studyhelp/algorithmpage.dart';
 import 'package:studyhelp/drawer.dart';
 import 'package:studyhelp/main.dart';
+
+class Pair{
+  String dataType;
+  List<dynamic> values;
+  Pair({required this.dataType, required this.values});
+}
 
 class Imagetext extends StatefulWidget {
   const Imagetext({super.key});
@@ -133,17 +140,27 @@ class _ImagetextState extends State<Imagetext> {
                   children: [
                     AnimatedGradientContainer(),
                     Center(
-                      child: InkWell(
-                        onTap: () async{
+                      child: GestureDetector(
+                        onTap: () async {
                           String prompt = "";
-                          for(int i = 0;i<text.length;i++){
+                          for (int i = 0; i < text.length; i++) {
                             prompt += text[i];
                           }
-                          resultMap = await generateContent(prompt) as Map<String, List<dynamic>>;
-                          showDialog(context: context, builder: (context){
-                            var temp = resultMap['x'];
-                            return Text(temp![0]);
-                          });
+                          resultMap = await generateContent(prompt)
+                              as Map<String, List<dynamic>>;
+
+                          List<Pair> mylist = [];
+
+                          for(var entry in resultMap.entries){
+                            Pair temp = Pair(dataType: entry.key, values: entry.value);
+                            mylist.add(temp);
+                          }
+
+                          Future.delayed(const Duration(seconds: 5));
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return Algorithmpage(mylist: mylist);
+                          }));
                         },
                         child: const Text(
                           "Generate Algorithm",
