@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:studyhelp/drawer.dart';
 import 'dart:collection';
 
 import 'package:studyhelp/imageText.dart';
@@ -46,7 +45,7 @@ List<Node> bfs(List<List<Node>> adj, int startId, int V) {
 }
 
 class _AlgorithmpageState extends State<Algorithmpage> {
-
+  late List<Node> result;
   @override
   void initState() {
     super.initState();
@@ -58,7 +57,7 @@ class _AlgorithmpageState extends State<Algorithmpage> {
       addEdge(adj, node1, node2);
     }
 
-    List<Node> result = bfs(adj, 0, widget.mylist.length * 2 + 1);
+    result = bfs(adj, 0, widget.mylist.length * 2 + 1);
     for(int i = 0;i<result.length;i++){
       print('${result[i].dataType} ${result[i].value} ${result[i].id}');
     }
@@ -66,6 +65,20 @@ class _AlgorithmpageState extends State<Algorithmpage> {
 
   @override
   Widget build(BuildContext context) {
-    return Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Algorithm",
+          style: TextStyle(fontSize: 24, color: Colors.white),
+        ),
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: ListView.builder(
+        itemCount: result.length,
+        itemBuilder: (context, index){
+        return Text("${result[index].dataType} ${result[index].value} ${result[index].id}");
+      }),
+    );
   }
 }

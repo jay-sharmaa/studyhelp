@@ -8,7 +8,7 @@ import 'package:studyhelp/algorithmpage.dart';
 import 'package:studyhelp/drawer.dart';
 import 'package:studyhelp/main.dart';
 
-class Pair{
+class Pair {
   String dataType;
   List<dynamic> values;
   Pair({required this.dataType, required this.values});
@@ -22,30 +22,39 @@ class Imagetext extends StatefulWidget {
 }
 
 class _ImagetextState extends State<Imagetext> {
-  final List<TextEditingController> _textEditingController = [];
-  final TextEditingController _controller = TextEditingController();
+  // Single TextEditingController for all text
+  final TextEditingController _textEditingController = TextEditingController();
+  final TextEditingController _fileNameController = TextEditingController();
 
   late Map<String, List<dynamic>> resultMap;
 
   @override
   void initState() {
-    _initializeControlers();
+    _initializeController();
     super.initState();
   }
 
-  void _initializeControlers() {
-    for (int i = 0; i < text.length; i++) {
-      _textEditingController.add(TextEditingController(text: text[i]));
-    }
+  void _initializeController() {
+    // Join all text items with newlines or any appropriate separator
+    _textEditingController.text = text.join('\n\n');
   }
 
-  void _createPDF(List<String> pages, String fileName) async {
+  // Update the text list from the controller
+  List<String> _updateTextFromController() {
+    // Split the text by newlines or whatever separator logic you need
+    return _textEditingController.text.split('\n\n');
+  }
+
+  void _createPDF(String fileName) async {
+    // Update text before creating PDF
+    final List<String> updatedText = _updateTextFromController();
+    
     final Directory? directory = await getDownloadsDirectory();
-    for (int i = 0; i < pages.length; i++) {
+    for (int i = 0; i < updatedText.length; i++) {
       pdf.addPage(pw.Page(
         build: (pw.Context context) {
           return pw.Container(
-            child: pw.Text(pages[i], style: const pw.TextStyle(fontSize: 10)),
+            child: pw.Text(updatedText[i], style: const pw.TextStyle(fontSize: 10)),
           );
         },
         pageFormat: PdfPageFormat.a4,
@@ -73,29 +82,29 @@ class _ImagetextState extends State<Imagetext> {
           IconButton(
             onPressed: () {
               showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text("File Name"),
-                      content: TextField(
-                        controller: _controller,
-                      ),
-                      actions: [
-                        GestureDetector(
-                            onTap: () {
-                              if (_controller.text != "") {
-                                _createPDF(text, _controller.text);
-                                _controller.dispose();
-                                Navigator.pop(context);
-                              } else {
-                                showSnackBar(
-                                    context, "File Name Cannot Be Empty");
-                              }
-                            },
-                            child: const Text("Save"))
-                      ],
-                    );
-                  });
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text("File Name"),
+                    content: TextField(
+                      controller: _fileNameController,
+                    ),
+                    actions: [
+                      GestureDetector(
+                        onTap: () {
+                          if (_fileNameController.text != "") {
+                            _createPDF(_fileNameController.text);
+                            Navigator.pop(context);
+                          } else {
+                            showSnackBar(context, "File Name Cannot Be Empty");
+                          }
+                        },
+                        child: const Text("Save")
+                      )
+                    ],
+                  );
+                }
+              );
             },
             icon: const Icon(Icons.picture_as_pdf),
             color: Colors.red,
@@ -110,27 +119,22 @@ class _ImagetextState extends State<Imagetext> {
           child: Column(
             children: [
               Expanded(
-                child: ListView.builder(
-                  itemCount: _textEditingController.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade500,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: TextField(
-                        controller: _textEditingController[index],
-                        maxLines: null,
-                        keyboardType: TextInputType.multiline,
-                        style: const TextStyle(fontSize: 16),
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.all(16),
-                          border: InputBorder.none,
-                          hintText: 'Edit text here...',
-                        ),
-                      ),
-                    );
-                  },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade500,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: TextField(
+                    controller: _textEditingController,
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    style: const TextStyle(fontSize: 16),
+                    decoration: const InputDecoration(
+                      contentPadding: EdgeInsets.all(16),
+                      border: InputBorder.none,
+                      hintText: 'Edit text here...',
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -142,12 +146,12 @@ class _ImagetextState extends State<Imagetext> {
                     Center(
                       child: GestureDetector(
                         onTap: () async {
-                          String prompt = "";
-                          for (int i = 0; i < text.length; i++) {
-                            prompt += text[i];
-                          }
+                          // Update text before generating algorithm
+                          final List<String> updatedText = _updateTextFromController();
+                          
+                          String prompt = updatedText.join(' ');
                           resultMap = await generateContent(prompt)
-                              as Map<String, List<dynamic>>;
+                            as Map<String, List<dynamic>>;
 
                           List<Pair> mylist = [];
 
@@ -158,9 +162,10 @@ class _ImagetextState extends State<Imagetext> {
 
                           Future.delayed(const Duration(seconds: 5));
                           Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return Algorithmpage(mylist: mylist);
-                          }));
+                            MaterialPageRoute(builder: (context) {
+                              return Algorithmpage(mylist: mylist);
+                            })
+                          );
                         },
                         child: const Text(
                           "Generate Algorithm",
@@ -176,6 +181,13 @@ class _ImagetextState extends State<Imagetext> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    _fileNameController.dispose();
+    super.dispose();
   }
 }
 

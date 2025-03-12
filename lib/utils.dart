@@ -1,5 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:studyhelp/constants.dart';
+import 'package:flutter/services.dart';
+import 'package:open_filex/open_filex.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 Widget DecoratedContainer(List<dynamic> fileName, BuildContext context) {
   return SingleChildScrollView(
@@ -25,13 +29,11 @@ Widget DecoratedContainer(List<dynamic> fileName, BuildContext context) {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: GestureDetector(
-                  child: Text(file.toString()),
-                  onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context){
-                      return PDFViewer(filePath: file.toString());
-                    }));
-                  }
-                  ),
+                    child: Text(file.toString()),
+                    onTap: (){
+                      openPDFfromAssets();
+                    }
+                ),
               ),
             ),
           );
@@ -42,4 +44,17 @@ Widget DecoratedContainer(List<dynamic> fileName, BuildContext context) {
       }).toList(),
     ),
   );
+}
+
+Future<void> openPDFfromAssets() async {
+  const String assetPath = 'assests/sample.pdf';
+
+  final Directory tempDir = await getTemporaryDirectory();
+  final File file = File('${tempDir.path}/sample.pdf');
+
+  final ByteData data = await rootBundle.load(assetPath);
+  final List<int> bytes = data.buffer.asUint8List();
+  await file.writeAsBytes(bytes, flush: true);
+
+  await OpenFilex.open(file.path);
 }
