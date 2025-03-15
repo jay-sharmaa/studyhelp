@@ -21,6 +21,7 @@ class DraggableItem {
   final Widget child;
   final ShapeType type;
   final Color color;
+  final TextEditingController textEditingController;
 
   DraggableItem({
     required this.id,
@@ -28,14 +29,17 @@ class DraggableItem {
     required this.child,
     required this.type,
     required this.color,
+    required this.textEditingController
   });
 
   factory DraggableItem.createShape({
     required int id,
     required Offset offset,
     required ShapeType type,
-    required String label,
+    String initialText = '',
   }) {
+    final textEditingController = TextEditingController(text: initialText);
+
     switch (type) {
       case ShapeType.square:
         return DraggableItem(
@@ -43,40 +47,59 @@ class DraggableItem {
           offset: offset,
           type: type,
           color: Colors.yellow,
+          textEditingController: textEditingController,
           child: Container(
             width: 85,
             height: 85,
             color: Colors.yellow,
             child: Center(
-              child: Text(label, style: const TextStyle(color: Colors.white)),
+              child: TextField(
+                controller: textEditingController,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
             ),
           ),
         );
-      
+
       case ShapeType.circle:
         return DraggableItem(
           id: id,
           offset: offset,
           type: type,
           color: Colors.yellow.shade300,
+          textEditingController: textEditingController,
           child: ClipOval(
             child: Container(
               width: 85,
               height: 85,
               color: Colors.yellow.shade300,
               child: Center(
-                child: Text(label, style: const TextStyle(color: Colors.white)),
+                child: TextField(
+                  controller: textEditingController,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               ),
             ),
           ),
         );
-      
+
       case ShapeType.rhombus:
         return DraggableItem(
           id: id,
           offset: offset,
           type: type,
           color: Colors.yellow.shade500,
+          textEditingController: textEditingController,
           child: Transform.rotate(
             angle: math.pi / 4,
             child: Container(
@@ -86,7 +109,15 @@ class DraggableItem {
               child: Center(
                 child: Transform.rotate(
                   angle: -math.pi / 4,
-                  child: Text(label, style: const TextStyle(color: Colors.white)),
+                  child: TextField(
+                    controller: textEditingController,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -94,7 +125,6 @@ class DraggableItem {
         );
     }
   }
-
   Offset get centerOffset {
     return Offset(
       offset.dx + 42.5,
@@ -103,11 +133,15 @@ class DraggableItem {
   }
 }
 
+
+
 class PlaceHolder extends StatefulWidget {
   const PlaceHolder({super.key});
   @override
   State<PlaceHolder> createState() => _PlaceHolderState();
 }
+
+final List<Connection> connections = [];
 
 class _PlaceHolderState extends State<PlaceHolder> {
   final Map<ShapeType, List<DraggableItem>> items = {
@@ -122,7 +156,7 @@ class _PlaceHolderState extends State<PlaceHolder> {
     ShapeType.rhombus: 0,
   };
 
-  final List<Connection> connections = [];
+
   DraggableItem? selectedNode;
 
   List<Offset> points = [];
@@ -134,21 +168,21 @@ class _PlaceHolderState extends State<PlaceHolder> {
       id: 0,
       offset: const Offset(15, 10),
       type: ShapeType.square,
-      label: 'Drag Me',
+      initialText: 'Drag Me',
     ));
     
     items[ShapeType.circle]!.add(DraggableItem.createShape(
       id: 0,
       offset: const Offset(130, 10),
       type: ShapeType.circle,
-      label: 'Drag Me',
+      initialText: 'Drag Me',
     ));
     
     items[ShapeType.rhombus]!.add(DraggableItem.createShape(
       id: 0,
       offset: const Offset(250, 28.37),
       type: ShapeType.rhombus,
-      label: 'Drag Me',
+      initialText: 'Drag Me',
     ));
   }
 
@@ -162,7 +196,7 @@ class _PlaceHolderState extends State<PlaceHolder> {
         id: counters[item.type]!,
         offset: finalOffset,
         type: item.type,
-        label: '${counters[item.type]} ${item.id}',
+        initialText: '${counters[item.type]} ${item.id}',
       ));
     } else {
       final index = items[item.type]!.indexWhere((i) => i.id == item.id);
@@ -171,7 +205,7 @@ class _PlaceHolderState extends State<PlaceHolder> {
           id: item.id,
           offset: finalOffset,
           type: item.type,
-          label: '${counters[item.type]} ${item.id}',
+          initialText: '${counters[item.type]} ${item.id}',
         );
         items[item.type]![index] = updatedItem;
         for (var connection in connections) {
@@ -199,6 +233,7 @@ class _PlaceHolderState extends State<PlaceHolder> {
           child: selectedNode!.child,
           type: selectedNode!.type,
           color: selectedNode!.color,
+          textEditingController: TextEditingController(),
         ),
         to: DraggableItem(
           id: item.id,
@@ -206,6 +241,7 @@ class _PlaceHolderState extends State<PlaceHolder> {
           child: item.child,
           type: item.type,
           color: item.color,
+          textEditingController: TextEditingController(),
         ),
       ));
       selectedNode = null;
@@ -232,7 +268,7 @@ class _PlaceHolderState extends State<PlaceHolder> {
               left: item.offset.dx,
               top: item.offset.dy,
               child: GestureDetector(
-                onTap: () => _handleNodeTap(item),
+                onDoubleTap: () => _handleNodeTap(item),
                 child: Draggable<DraggableItem>(
                   data: item,
                   feedback: Opacity(

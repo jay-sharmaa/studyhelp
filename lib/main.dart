@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -85,7 +84,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Future<void> _processImage(List<File> files) async {
     for (int i = 0; i < files.length; i++) {
       final inputImage = InputImage.fromFile(files[i]);
-      final textRecongnizer = TextRecognizer();
+      final textRecongnizer = TextRecognizer(script: TextRecognitionScript.latin);
       final RecognizedText recognizedText =
       await textRecongnizer.processImage(inputImage);
       List<TextBlock> extractedText = recognizedText.blocks;

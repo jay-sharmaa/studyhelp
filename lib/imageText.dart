@@ -35,18 +35,14 @@ class _ImagetextState extends State<Imagetext> {
   }
 
   void _initializeController() {
-    // Join all text items with newlines or any appropriate separator
     _textEditingController.text = text.join('\n\n');
   }
 
-  // Update the text list from the controller
   List<String> _updateTextFromController() {
-    // Split the text by newlines or whatever separator logic you need
     return _textEditingController.text.split('\n\n');
   }
 
   void _createPDF(String fileName) async {
-    // Update text before creating PDF
     final List<String> updatedText = _updateTextFromController();
     
     final Directory? directory = await getDownloadsDirectory();
