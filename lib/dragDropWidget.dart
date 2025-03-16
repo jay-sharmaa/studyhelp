@@ -133,8 +133,6 @@ class DraggableItem {
   }
 }
 
-
-
 class PlaceHolder extends StatefulWidget {
   const PlaceHolder({super.key});
   @override
@@ -149,13 +147,15 @@ class _PlaceHolderState extends State<PlaceHolder> {
     ShapeType.circle: [],
     ShapeType.rhombus: [],
   };
-  
+
   final Map<ShapeType, int> counters = {
     ShapeType.square: 0,
     ShapeType.circle: 0,
     ShapeType.rhombus: 0,
   };
 
+  // Add a variable to track visibility of source shapes
+  bool _showSourceShapes = true;
 
   DraggableItem? selectedNode;
 
@@ -164,20 +164,21 @@ class _PlaceHolderState extends State<PlaceHolder> {
   @override
   void initState() {
     super.initState();
+    // Initialize source shapes
     items[ShapeType.square]!.add(DraggableItem.createShape(
       id: 0,
       offset: const Offset(15, 10),
       type: ShapeType.square,
       initialText: 'Drag Me',
     ));
-    
+
     items[ShapeType.circle]!.add(DraggableItem.createShape(
       id: 0,
       offset: const Offset(130, 10),
       type: ShapeType.circle,
       initialText: 'Drag Me',
     ));
-    
+
     items[ShapeType.rhombus]!.add(DraggableItem.createShape(
       id: 0,
       offset: const Offset(250, 28.37),
@@ -187,117 +188,131 @@ class _PlaceHolderState extends State<PlaceHolder> {
   }
 
   void _handleDragEnd(DraggableItem item, Offset offset) {
-  setState(() {
-    final finalOffset = renderPosition(context, offset);
-    
-    if (item.id == 0) {
-      counters[item.type] = counters[item.type]! + 1;
-      items[item.type]!.add(DraggableItem.createShape(
-        id: counters[item.type]!,
-        offset: finalOffset,
-        type: item.type,
-        initialText: '${counters[item.type]} ${item.id}',
-      ));
-    } else {
-      final index = items[item.type]!.indexWhere((i) => i.id == item.id);
-      if (index != -1) {
-        final updatedItem = DraggableItem.createShape(
-          id: item.id,
+    setState(() {
+      final finalOffset = renderPosition(context, offset);
+
+      if (item.id == 0) {
+        counters[item.type] = counters[item.type]! + 1;
+        items[item.type]!.add(DraggableItem.createShape(
+          id: counters[item.type]!,
           offset: finalOffset,
           type: item.type,
           initialText: '${counters[item.type]} ${item.id}',
-        );
-        items[item.type]![index] = updatedItem;
-        for (var connection in connections) {
-          if (connection.from.id == item.id) {
-            connection.from.offset = finalOffset;
-          }
-          if (connection.to.id == item.id) {
-            connection.to.offset = finalOffset;
+        ));
+      } else {
+        final index = items[item.type]!.indexWhere((i) => i.id == item.id);
+        if (index != -1) {
+          final updatedItem = DraggableItem.createShape(
+            id: item.id,
+            offset: finalOffset,
+            type: item.type,
+            initialText: '${counters[item.type]} ${item.id}',
+          );
+          items[item.type]![index] = updatedItem;
+          for (var connection in connections) {
+            if (connection.from.id == item.id) {
+              connection.from.offset = finalOffset;
+            }
+            if (connection.to.id == item.id) {
+              connection.to.offset = finalOffset;
+            }
           }
         }
       }
-    }
-  });
-}
+    });
+  }
 
   void _handleNodeTap(DraggableItem item) {
-  setState(() {
-    if (selectedNode == null) {
-      selectedNode = item;
-    } else if (selectedNode != item) {
-      connections.add(Connection(
-        from: DraggableItem(
-          id: selectedNode!.id,
-          offset: selectedNode!.offset,
-          child: selectedNode!.child,
-          type: selectedNode!.type,
-          color: selectedNode!.color,
-          textEditingController: TextEditingController(),
-        ),
-        to: DraggableItem(
-          id: item.id,
-          offset: item.offset,
-          child: item.child,
-          type: item.type,
-          color: item.color,
-          textEditingController: TextEditingController(),
-        ),
-      ));
-      selectedNode = null;
-    } else {
-      selectedNode = null;
-    }
-  });
-}
+    setState(() {
+      if (selectedNode == null) {
+        selectedNode = item;
+      } else if (selectedNode != item) {
+        connections.add(Connection(
+          from: DraggableItem(
+            id: selectedNode!.id,
+            offset: selectedNode!.offset,
+            child: selectedNode!.child,
+            type: selectedNode!.type,
+            color: selectedNode!.color,
+            textEditingController: TextEditingController(),
+          ),
+          to: DraggableItem(
+            id: item.id,
+            offset: item.offset,
+            child: item.child,
+            type: item.type,
+            color: item.color,
+            textEditingController: TextEditingController(),
+          ),
+        ));
+        selectedNode = null;
+      } else {
+        selectedNode = null;
+      }
+    });
+  }
+
+  void _toggleSourceShapes() {
+    setState(() {
+      _showSourceShapes = !_showSourceShapes;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 780,
-      width: 450,
-      child: Stack(
-        children: [CustomPaint(
-            painter: ConnectionPainter(
-              connections: connections,
-              selectedNode: selectedNode,
-            ),
-          ),
-          ...items.entries.expand((entry) => entry.value.map((item) => 
-            Positioned(
-              left: item.offset.dx,
-              top: item.offset.dy,
-              child: GestureDetector(
-                onDoubleTap: () => _handleNodeTap(item),
-                child: Draggable<DraggableItem>(
-                  data: item,
-                  feedback: Opacity(
-                    opacity: 0.7,
-                    child: Material(child: item.child),
-                  ),
-                  childWhenDragging: Opacity(
-                    opacity: 0.3,
-                    child: Material(child: item.child),
-                  ),
-                  onDraggableCanceled: (velocity, offset) => 
-                    _handleDragEnd(item, offset),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: selectedNode?.id == item.id 
-                          ? Colors.blue 
-                          : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                    child: item.child,
-                  ),
+    return Column(
+      children: [
+        SizedBox(
+          height: 740,
+          width: 450,
+          child: Stack(
+            children: [
+              CustomPaint(
+                painter: ConnectionPainter(
+                  connections: connections,
+                  selectedNode: selectedNode,
                 ),
               ),
-            ),
-          )),
-        ],
-      ),
+              ...items.entries.expand((entry) => entry.value.map((item) {
+                if (item.id == 0 && !_showSourceShapes) {
+                  return const SizedBox.shrink();
+                }
+                return Positioned(
+                  left: item.offset.dx,
+                  top: item.offset.dy,
+                  child: GestureDetector(
+                    onDoubleTap: () => _handleNodeTap(item),
+                    child: Draggable<DraggableItem>(
+                      data: item,
+                      feedback: Opacity(
+                        opacity: 0.7,
+                        child: Material(child: item.child),
+                      ),
+                      childWhenDragging: Opacity(
+                        opacity: 0.3,
+                        child: Material(child: item.child),
+                      ),
+                      onDraggableCanceled: (velocity, offset) =>
+                          _handleDragEnd(item, offset),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: selectedNode?.id == item.id
+                                ? Colors.blue
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: item.child,
+                      ),
+                    ),
+                  ),
+                );
+              })),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
