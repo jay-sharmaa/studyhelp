@@ -23,14 +23,13 @@ class DraggableItem {
   final Color color;
   final TextEditingController textEditingController;
 
-  DraggableItem({
-    required this.id,
-    required this.offset,
-    required this.child,
-    required this.type,
-    required this.color,
-    required this.textEditingController
-  });
+  DraggableItem(
+      {required this.id,
+      required this.offset,
+      required this.child,
+      required this.type,
+      required this.color,
+      required this.textEditingController});
 
   factory DraggableItem.createShape({
     required int id,
@@ -134,27 +133,30 @@ class DraggableItem {
 }
 
 class PlaceHolder extends StatefulWidget {
-  const PlaceHolder({super.key});
+  final GlobalKey<_PlaceHolderState> key;
+  const PlaceHolder({required this.key}) : super(key: key);
+
   @override
   State<PlaceHolder> createState() => _PlaceHolderState();
 }
 
 final List<Connection> connections = [];
 
-class _PlaceHolderState extends State<PlaceHolder> {
-  final Map<ShapeType, List<DraggableItem>> items = {
-    ShapeType.square: [],
-    ShapeType.circle: [],
-    ShapeType.rhombus: [],
-  };
+Map<ShapeType, List<DraggableItem>> items = {
+  ShapeType.square: [],
+  ShapeType.circle: [],
+  ShapeType.rhombus: [],
+};
 
+final GlobalKey<_PlaceHolderState> placeHolderKey = GlobalKey();
+
+class _PlaceHolderState extends State<PlaceHolder> {
   final Map<ShapeType, int> counters = {
     ShapeType.square: 0,
     ShapeType.circle: 0,
     ShapeType.rhombus: 0,
   };
 
-  // Add a variable to track visibility of source shapes
   bool _showSourceShapes = true;
 
   DraggableItem? selectedNode;
@@ -164,7 +166,11 @@ class _PlaceHolderState extends State<PlaceHolder> {
   @override
   void initState() {
     super.initState();
-    // Initialize source shapes
+    
+    items.forEach((key, value) {
+      value.clear();
+    });
+
     items[ShapeType.square]!.add(DraggableItem.createShape(
       id: 0,
       offset: const Offset(15, 10),
@@ -263,7 +269,7 @@ class _PlaceHolderState extends State<PlaceHolder> {
     return Column(
       children: [
         SizedBox(
-          height: 740,
+          height: 800,
           width: 450,
           child: Stack(
             children: [
@@ -274,41 +280,41 @@ class _PlaceHolderState extends State<PlaceHolder> {
                 ),
               ),
               ...items.entries.expand((entry) => entry.value.map((item) {
-                if (item.id == 0 && !_showSourceShapes) {
-                  return const SizedBox.shrink();
-                }
-                return Positioned(
-                  left: item.offset.dx,
-                  top: item.offset.dy,
-                  child: GestureDetector(
-                    onDoubleTap: () => _handleNodeTap(item),
-                    child: Draggable<DraggableItem>(
-                      data: item,
-                      feedback: Opacity(
-                        opacity: 0.7,
-                        child: Material(child: item.child),
-                      ),
-                      childWhenDragging: Opacity(
-                        opacity: 0.3,
-                        child: Material(child: item.child),
-                      ),
-                      onDraggableCanceled: (velocity, offset) =>
-                          _handleDragEnd(item, offset),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: selectedNode?.id == item.id
-                                ? Colors.blue
-                                : Colors.transparent,
-                            width: 2,
+                    if (item.id == 0 && !_showSourceShapes) {
+                      return const SizedBox.shrink();
+                    }
+                    return Positioned(
+                      left: item.offset.dx,
+                      top: item.offset.dy,
+                      child: GestureDetector(
+                        onDoubleTap: () => _handleNodeTap(item),
+                        child: Draggable<DraggableItem>(
+                          data: item,
+                          feedback: Opacity(
+                            opacity: 0.7,
+                            child: Material(child: item.child),
+                          ),
+                          childWhenDragging: Opacity(
+                            opacity: 0.3,
+                            child: Material(child: item.child),
+                          ),
+                          onDraggableCanceled: (velocity, offset) =>
+                              _handleDragEnd(item, offset),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: selectedNode?.id == item.id
+                                    ? Colors.blue
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: item.child,
                           ),
                         ),
-                        child: item.child,
                       ),
-                    ),
-                  ),
-                );
-              })),
+                    );
+                  })),
             ],
           ),
         ),
@@ -345,9 +351,9 @@ class ConnectionPainter extends CustomPainter {
     for (final connection in connections) {
       final start = connection.from.centerOffset;
       final end = connection.to.centerOffset;
-      
+
       canvas.drawLine(start, end, paint);
-      
+
       _drawArrow(canvas, start, end, paint);
     }
 
@@ -361,15 +367,15 @@ class ConnectionPainter extends CustomPainter {
     const arrowSize = 15.0;
     final delta = end - start;
     final angle = math.atan2(delta.dy, delta.dx);
-    
+
     final arrowPath = Path()
       ..moveTo(end.dx - arrowSize * math.cos(angle - math.pi / 6),
-               end.dy - arrowSize * math.sin(angle - math.pi / 6))
+          end.dy - arrowSize * math.sin(angle - math.pi / 6))
       ..lineTo(end.dx, end.dy)
       ..lineTo(end.dx - arrowSize * math.cos(angle + math.pi / 6),
-               end.dy - arrowSize * math.sin(angle + math.pi / 6))
+          end.dy - arrowSize * math.sin(angle + math.pi / 6))
       ..close();
-    
+
     canvas.drawPath(arrowPath, paint..style = PaintingStyle.fill);
   }
 

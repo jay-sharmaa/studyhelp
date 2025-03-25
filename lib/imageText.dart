@@ -26,7 +26,7 @@ class _ImagetextState extends State<Imagetext> {
   final TextEditingController _textEditingController = TextEditingController();
   final TextEditingController _fileNameController = TextEditingController();
 
-  late Map<String, List<dynamic>> resultMap;
+  late List<Node> resultMap;
 
   @override
   void initState() {
@@ -142,24 +142,18 @@ class _ImagetextState extends State<Imagetext> {
                     Center(
                       child: GestureDetector(
                         onTap: () async {
-                          // Update text before generating algorithm
                           final List<String> updatedText = _updateTextFromController();
-                          
                           String prompt = updatedText.join(' ');
-                          resultMap = await generateContent(prompt)
-                            as Map<String, List<dynamic>>;
+                          resultMap = await generateContent(prompt);
 
-                          List<Pair> mylist = [];
-
-                          for(var entry in resultMap.entries){
-                            Pair temp = Pair(dataType: entry.key, values: entry.value);
-                            mylist.add(temp);
+                          for(int i = 0;i<resultMap.length;i++){
+                            print(resultMap[i].name + " " + resultMap[i].type + " " + resultMap[i].isLoop.toString());
                           }
-
+                          
                           Future.delayed(const Duration(seconds: 5));
                           Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
-                              return Algorithmpage(mylist: mylist);
+                              return Algorithmpage(nodes: resultMap);
                             })
                           );
                         },
@@ -241,5 +235,64 @@ class _AnimatedGradientContainerState extends State<AnimatedGradientContainer>
         );
       },
     );
+  }
+}
+
+class Node<T> {
+  String name;
+  T? value;
+  String type;
+  String? conditionVariable;
+  String? operator;
+  T? limit;
+  bool isLoop;
+  
+  // New property to track conditional block status
+  bool isInConditionalBlock;
+
+  Node.variable(this.name, this.type, this.value, {this.isInConditionalBlock = false})
+      : conditionVariable = null,
+        operator = null,
+        limit = null,
+        isLoop = false;
+
+  Node.condition(
+    this.conditionVariable, 
+    this.operator, 
+    this.limit, 
+    this.type, 
+    {this.isLoop = false, this.isInConditionalBlock = true}
+  ) : name = '',
+      value = null;
+
+  bool evaluate(Map<String, dynamic> context) {
+    if (conditionVariable == null || operator == null || limit == null) return false;
+    if (!context.containsKey(conditionVariable)) return false;
+    var currentValue = context[conditionVariable];
+    
+    switch (operator) {
+      case '<':
+        return currentValue < limit;
+      case '<=':
+        return currentValue <= limit;
+      case '>':
+        return currentValue > limit;
+      case '>=':
+        return currentValue >= limit;
+      case '==':
+        return currentValue == limit;
+      case '!=':
+        return currentValue != limit;
+      default:
+        throw Exception('Unsupported operator: $operator');
+    }
+  }
+
+  @override
+  String toString() {
+    if (conditionVariable != null) {
+      return '{${isLoop ? "while_loop" : "if_statement"}: [${isLoop ? 1 : 0}, $conditionVariable $operator $limit, $type, inConditionalBlock: $isInConditionalBlock]}';
+    }
+    return '{$name: [$type, $value, inConditionalBlock: $isInConditionalBlock]}';
   }
 }

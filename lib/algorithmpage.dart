@@ -1,84 +1,107 @@
 import 'package:flutter/material.dart';
-import 'dart:collection';
-
 import 'package:studyhelp/imageText.dart';
 
 class Algorithmpage extends StatefulWidget {
-  final List<Pair> mylist;
-  const Algorithmpage({required this.mylist, super.key});
+  final List<Node> nodes;
+  const Algorithmpage({required this.nodes, super.key});
 
   @override
   State<Algorithmpage> createState() => _AlgorithmpageState();
 }
 
-class Node {
-  String dataType;
-  List<dynamic> value;
-  int id;
-
-  Node(this.dataType, this.value, this.id);
-}
-
-void addEdge(List<List<Node>> adj, Node u, Node v) {
-  adj[u.id].add(v);
-}
-
-List<Node> bfs(List<List<Node>> adj, int startId, int V) {
-  List<bool> vis = List.filled(V, false);
-  Queue<int> q = Queue<int>();
-  vis[startId] = true;
-  q.add(startId);
-  List<Node> bfsResult = [];
-
-  while (q.isNotEmpty) {
-    int currId = q.removeFirst();
-
-    for (Node neighbor in adj[currId]) {
-      if (!vis[neighbor.id]) {
-        vis[neighbor.id] = true;
-        q.add(neighbor.id);
-        bfsResult.add(neighbor);
-      }
-    }
-  }
-  return bfsResult;
-}
-
 class _AlgorithmpageState extends State<Algorithmpage> {
-  late List<Node> result;
-  @override
-  void initState() {
-    super.initState();
-    List<List<Node>> adj = List.generate(widget.mylist.length * 2 + 1, (_) => []);
-
-    for(int i = 0;i<widget.mylist.length - 1;i++){
-      var node1 = Node(widget.mylist[i].dataType, widget.mylist[i].values, i);
-      var node2 = Node(widget.mylist[i+1].dataType, widget.mylist[i+1].values, i+1);
-      addEdge(adj, node1, node2);
-    }
-
-    result = bfs(adj, 0, widget.mylist.length * 2 + 1);
-    for(int i = 0;i<result.length;i++){
-      print('${result[i].dataType} ${result[i].value} ${result[i].id}');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Algorithm",
-          style: TextStyle(fontSize: 24, color: Colors.white),
-        ),
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
+      appBar: AppBar(title: Text('Algorithm Page')),
       body: ListView.builder(
-        itemCount: result.length,
+        itemCount: widget.nodes.length,
         itemBuilder: (context, index){
-        return Text("${result[index].dataType} ${result[index].value} ${result[index].id}");
-      }),
+          if(widget.nodes[index].isLoop){
+            return DiamondPlaceholder(name: widget.nodes[index].type);
+          }
+          else{
+            return Column(children: [
+                CirclePlaceholder(name: widget.nodes[index].type),
+                SizedBox(height: 10,)
+              ],
+            );
+          }
+        },
+      )
     );
   }
+}
+
+class CirclePlaceholder extends StatelessWidget {
+  final String name;
+
+  const CirclePlaceholder({required this.name, super.key}); 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 150,
+      height: 150,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.grey.shade400,
+      ),
+      child: Text(name),
+    );
+  }
+}
+
+class DiamondPlaceholder extends StatelessWidget {
+  final String name;
+
+  const DiamondPlaceholder({required this.name, super.key}); 
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: DiamondClipper(),
+      child: Container(
+        width: 150,
+        height: 150,
+        color: Colors.grey.shade400,
+        child: Text(name),
+      ),
+    );
+  }
+}
+
+class EllipsePlaceholder extends StatelessWidget {
+  final String name;
+
+  const EllipsePlaceholder({required this.name, super.key}); 
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 150,
+      height: 120,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.elliptical(75, 60)),
+        color: Colors.grey.shade400,
+      ),
+      child: Text(name),
+    );
+  }
+}
+
+class DiamondClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.moveTo(size.width / 2, 0);
+    path.lineTo(size.width, size.height / 2);
+    path.lineTo(size.width / 2, size.height);
+    path.lineTo(0, size.height / 2);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
