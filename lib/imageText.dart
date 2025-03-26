@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -246,53 +247,64 @@ class Node<T> {
   String? operator;
   T? limit;
   bool isLoop;
-  
-  // New property to track conditional block status
-  bool isInConditionalBlock;
 
-  Node.variable(this.name, this.type, this.value, {this.isInConditionalBlock = false})
+  // Variable Node Constructor
+  Node.variable(this.name, this.type, this.value, {this.isLoop = false})
       : conditionVariable = null,
         operator = null,
-        limit = null,
-        isLoop = false;
+        limit = null;
 
-  Node.condition(
-    this.conditionVariable, 
-    this.operator, 
-    this.limit, 
-    this.type, 
-    {this.isLoop = false, this.isInConditionalBlock = true}
-  ) : name = '',
-      value = null;
+  // Condition Node Constructor (for if/while conditions)
+  Node.condition(this.conditionVariable, this.operator, this.limit, {this.isLoop = true}) 
+      : name = "",
+        type = "condition",
+        value = null;
 
-  bool evaluate(Map<String, dynamic> context) {
-    if (conditionVariable == null || operator == null || limit == null) return false;
-    if (!context.containsKey(conditionVariable)) return false;
-    var currentValue = context[conditionVariable];
-    
-    switch (operator) {
-      case '<':
-        return currentValue < limit;
-      case '<=':
-        return currentValue <= limit;
-      case '>':
-        return currentValue > limit;
-      case '>=':
-        return currentValue >= limit;
-      case '==':
-        return currentValue == limit;
-      case '!=':
-        return currentValue != limit;
-      default:
-        throw Exception('Unsupported operator: $operator');
+  // Convert from JSON-like structure to Node object
+  static Node fromData(Map<String, dynamic> data) {
+    var key = data.keys.first;
+    var values = data[key];
+
+    if (key == "variable") {
+      if (values.length < 2) {
+        throw Exception("Invalid condition format: $values");
+      }
+
+      // Parsing condition (e.g., "a < 15")
+      List<String> parts = values[1].split(' ');
+      if (parts.length != 3) {
+        throw Exception("Malformed condition expression: ${values[1]}");
+      }
+
+      return Node.condition(
+        parts[0],  // Variable
+        parts[1],  // Operator
+        num.tryParse(parts[2]) ?? parts[2], // Limit (parsed if numeric)
+        isLoop: data.containsKey("isloop") ? data["isloop"] : false
+      );
+    } 
+    else if (key == "key") {
+      if (values.length < 3) {
+        throw Exception("Invalid variable format: $values");
+      }
+
+      return Node.variable(
+        values[2], // Name
+        values[0], // Type
+        values[1], // Value
+        isLoop: data.containsKey("isloop") ? data["isloop"] : false
+      );
+    } 
+    else {
+      throw Exception("Unknown node type: $key");
     }
   }
 
   @override
   String toString() {
     if (conditionVariable != null) {
-      return '{${isLoop ? "while_loop" : "if_statement"}: [${isLoop ? 1 : 0}, $conditionVariable $operator $limit, $type, inConditionalBlock: $isInConditionalBlock]}';
+      return 'Node.condition("$conditionVariable", "$operator", $limit, isLoop: $isLoop)';
     }
-    return '{$name: [$type, $value, inConditionalBlock: $isInConditionalBlock]}';
+    return 'Node.variable("$name", type: "$type", value: $value, isLoop: $isLoop)';
   }
 }

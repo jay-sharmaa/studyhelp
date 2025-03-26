@@ -10,26 +10,33 @@ class Algorithmpage extends StatefulWidget {
 }
 
 class _AlgorithmpageState extends State<Algorithmpage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Algorithm Page')),
-      body: ListView.builder(
-        itemCount: widget.nodes.length,
-        itemBuilder: (context, index){
-          if(widget.nodes[index].isLoop){
-            return DiamondPlaceholder(name: widget.nodes[index].type);
-          }
-          else{
-            return Column(children: [
-                CirclePlaceholder(name: widget.nodes[index].type),
-                SizedBox(height: 10,)
-              ],
+      appBar: AppBar(
+        title: const Text(
+          'Algorithm Flow',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.blueGrey.shade900,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        child: ListView.separated(
+          itemCount: widget.nodes.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 20),
+          itemBuilder: (context, index) {
+            final node = widget.nodes[index];
+
+            return Center(
+              child: node.isLoop
+                  ? DiamondPlaceholder(name: node.type)
+                  : CirclePlaceholder(name: node.type),
             );
-          }
-        },
-      )
+          },
+        ),
+      ),
     );
   }
 }
@@ -37,7 +44,8 @@ class _AlgorithmpageState extends State<Algorithmpage> {
 class CirclePlaceholder extends StatelessWidget {
   final String name;
 
-  const CirclePlaceholder({required this.name, super.key}); 
+  const CirclePlaceholder({required this.name, super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -45,9 +53,17 @@ class CirclePlaceholder extends StatelessWidget {
       height: 150,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.grey.shade400,
+        color: Colors.blueGrey.shade300,
+        boxShadow: [
+          BoxShadow(color: Colors.grey.shade600, blurRadius: 6, offset: Offset(2, 2))
+        ],
       ),
-      child: Text(name),
+      alignment: Alignment.center,
+      child: Text(
+        name,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
     );
   }
 }
@@ -55,17 +71,27 @@ class CirclePlaceholder extends StatelessWidget {
 class DiamondPlaceholder extends StatelessWidget {
   final String name;
 
-  const DiamondPlaceholder({required this.name, super.key}); 
+  const DiamondPlaceholder({required this.name, super.key});
 
   @override
   Widget build(BuildContext context) {
     return ClipPath(
       clipper: DiamondClipper(),
       child: Container(
-        width: 150,
-        height: 150,
-        color: Colors.grey.shade400,
-        child: Text(name),
+        width: 160,
+        height: 160,
+        decoration: BoxDecoration(
+          color: Colors.deepPurpleAccent.shade200,
+          boxShadow: [
+            BoxShadow(color: Colors.grey.shade600, blurRadius: 6, offset: Offset(2, 2))
+          ],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          name,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
       ),
     );
   }
@@ -74,18 +100,26 @@ class DiamondPlaceholder extends StatelessWidget {
 class EllipsePlaceholder extends StatelessWidget {
   final String name;
 
-  const EllipsePlaceholder({required this.name, super.key}); 
+  const EllipsePlaceholder({required this.name, super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 150,
-      height: 120,
+      width: 180,
+      height: 100,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.elliptical(75, 60)),
-        color: Colors.grey.shade400,
+        borderRadius: const BorderRadius.all(Radius.elliptical(90, 50)),
+        color: Colors.greenAccent.shade400,
+        boxShadow: [
+          BoxShadow(color: Colors.grey.shade600, blurRadius: 6, offset: Offset(2, 2))
+        ],
       ),
-      child: Text(name),
+      alignment: Alignment.center,
+      child: Text(
+        name,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
     );
   }
 }
