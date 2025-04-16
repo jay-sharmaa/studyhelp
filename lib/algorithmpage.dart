@@ -28,11 +28,10 @@ class _AlgorithmpageState extends State<Algorithmpage> {
           separatorBuilder: (_, __) => const SizedBox(height: 20),
           itemBuilder: (context, index) {
             final node = widget.nodes[index];
-
             return Center(
               child: node.isLoop
-                  ? DiamondPlaceholder(name: node.type)
-                  : CirclePlaceholder(name: node.type),
+                  ? DiamondPlaceholder(name: node)
+                  : CirclePlaceholder(name: node),
             );
           },
         ),
@@ -42,7 +41,7 @@ class _AlgorithmpageState extends State<Algorithmpage> {
 }
 
 class CirclePlaceholder extends StatelessWidget {
-  final String name;
+  final Node name;
 
   const CirclePlaceholder({required this.name, super.key});
 
@@ -69,7 +68,7 @@ class CirclePlaceholder extends StatelessWidget {
 }
 
 class DiamondPlaceholder extends StatelessWidget {
-  final String name;
+  final Node name;
 
   const DiamondPlaceholder({required this.name, super.key});
 

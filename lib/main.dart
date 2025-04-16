@@ -4,7 +4,6 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:studyhelp/algorithmpage.dart';
 import 'package:studyhelp/drawer.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -65,7 +64,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   void _listOfFiles() async {
     Directory appDocDir = await getApplicationDocumentsDirectory();
-    String appPath = appDocDir.path; // Private app storage path
+    String appPath = appDocDir.path;
     Directory appDir = Directory(appPath);
 
     if (appDir.existsSync()) {
