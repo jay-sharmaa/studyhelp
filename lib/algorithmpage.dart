@@ -59,7 +59,7 @@ class CirclePlaceholder extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: Text(
-        name,
+        name.name,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
       ),
@@ -87,7 +87,7 @@ class DiamondPlaceholder extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: Text(
-          name,
+          name.name,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         ),

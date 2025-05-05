@@ -23,7 +23,6 @@ class Imagetext extends StatefulWidget {
 }
 
 class _ImagetextState extends State<Imagetext> {
-  // Single TextEditingController for all text
   final TextEditingController _textEditingController = TextEditingController();
   final TextEditingController _fileNameController = TextEditingController();
 

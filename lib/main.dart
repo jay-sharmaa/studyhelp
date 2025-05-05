@@ -7,7 +7,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:studyhelp/drawer.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:studyhelp/utils.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,8 +40,8 @@ List<String> text = [];
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final ImagePicker picker = ImagePicker();
-  double endX = 340;
-  double endY = 640;
+  double endX = 370;
+  double endY = 770;
   TextEditingController _controller = TextEditingController();
   List _file = [];
 
@@ -184,6 +183,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
+                const PopupMenuItem<String>(
+                  value: 'create_folder',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(Icons.picture_as_pdf, color: Colors.red),
+                      SizedBox(width: 10),
+                      Text('Save In Folder', style: TextStyle(color: Colors.black)),
+                    ],
+                  ),
+                ),
               ],
               onSelected: (String value) {
                 switch (value) {
@@ -221,9 +231,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     child: const Text("Save"))
                               ],
                             );
-                          });
+                          }
+                        );
                     }
                     break;
+                  case 'create_folder':
+                    
                 }
               },
             )
@@ -238,14 +251,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               if (set == 0) {
                 setState(() {});
                 _controllerRotate.forward(from: 0);
-                endY = 570;
+                endY = 680;
                 endX = 280;
                 set = 1;
               } else {
                 setState(() {});
                 resetToOriginalPosition();
-                endY = 640;
-                endX = 340;
+                endY = 770;
+                endX = 360;
                 set = 0;
               }
             },
@@ -258,8 +271,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: 80, child: DecoratedContainer(_file, context)),
-              SizedBox(height: 700, child: mainScreen())
+              SizedBox(height: MediaQuery.of(context).size.height,child: mainScreen())
             ],
           ),
         )
@@ -334,20 +346,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           duration: const Duration(milliseconds: 250),
           builder: (BuildContext context, double value, Widget? child) {
             return Positioned(
-              left: 340,
+              left: 360,
               top: value,
               child: GestureDetector(
                   onTap: () async {
                     final image =
                     await picker.pickImage(source: ImageSource.camera);
                     resetToOriginalPosition();
-                    endY = 640;
-                    endX = 340;
+                    endY = 900;
+                    endX = 380;
                     set = 0;
                     setState(() {});
                     if (image == null) return;
                     imageFile.add(File(image.path));
-
                   },
                   child: iconContainer(Icons.camera_alt)),
             );
@@ -360,13 +371,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           builder: (BuildContext context, double value, Widget? child) {
             return Positioned(
               left: value,
-              top: 640,
+              top: 770,
               child: GestureDetector(
                 onTap: () async {
                   final List<XFile> image = await picker.pickMultiImage();
                   resetToOriginalPosition();
-                  endY = 640;
-                  endX = 340;
+                  endY = 900;
+                  endX = 360;
                   set = 0;
                   setState(() {
                   });
