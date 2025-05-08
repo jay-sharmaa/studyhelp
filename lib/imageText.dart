@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class _ImagetextState extends State<Imagetext> {
   final TextEditingController _textEditingController = TextEditingController();
   final TextEditingController _fileNameController = TextEditingController();
 
-  late List<Node> resultMap;
+  late Uint8List resultMap;
 
   @override
   void initState() {
@@ -144,16 +145,13 @@ class _ImagetextState extends State<Imagetext> {
                         onTap: () async {
                           final List<String> updatedText = _updateTextFromController();
                           String prompt = updatedText.join(' ');
-                          resultMap = await generateContent(prompt);
 
-                          for(int i = 0;i<resultMap.length;i++){
-                            print(resultMap[i].name + " " + resultMap[i].type + " " + resultMap[i].isLoop.toString());
-                          }
+                          resultMap = await generateContent(prompt);
                           
                           Future.delayed(const Duration(seconds: 5));
                           Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
-                              return Algorithmpage(nodes: resultMap);
+                              return Algorithmpage(image: resultMap);
                             })
                           );
                         },

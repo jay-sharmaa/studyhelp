@@ -12,8 +12,9 @@ class FolderPage extends StatefulWidget {
   State<FolderPage> createState() => _FolderPageState();
 }
 
+List<String> storageKeys = [];
+
 class _FolderPageState extends State<FolderPage> {
-  List<String> storageKeys = [];
 
   @override
   void initState() {
