@@ -2,7 +2,6 @@
 
 <p float="left">
   <img src="https://github.com/jay-sharmaa/studyhelp/blob/main/assests/img3.jpg" width="200"/>
-  <img src="https://github.com/jay-sharmaa/studyhelp/blob/main/assests/img.png" width="200"/>
 </p>
 
 # Home Screen Selecting Images
@@ -24,4 +23,11 @@
 <p float="left">
   <img src="https://github.com/jay-sharmaa/studyhelp/blob/main/assests/img8.jpg" width="200"/>
   <img src="https://github.com/jay-sharmaa/studyhelp/blob/main/assests/img9.jpg" width="200"/>
+</p>
+
+# Generate your custom algorithm
+
+<p float="left">
+  <img src="https://github.com/jay-sharmaa/studyhelp/blob/main/assests/img10.png" width="200"/>
+  <img src="https://github.com/jay-sharmaa/studyhelp/blob/main/assests/img11.png" width="200"/>
 </p>
