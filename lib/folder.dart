@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:studyhelp/drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:studyhelp/folderStorage.dart';
 
 class FolderPage extends StatefulWidget {
   const FolderPage({super.key});
@@ -15,7 +16,6 @@ class FolderPage extends StatefulWidget {
 List<String> storageKeys = [];
 
 class _FolderPageState extends State<FolderPage> {
-
   @override
   void initState() {
     super.initState();
@@ -59,7 +59,7 @@ class _FolderPageState extends State<FolderPage> {
     setState(() {
       storageKeys.add(name);
     });
-}
+  }
 
   void _createFolderDialog() {
     final controller = TextEditingController();
@@ -96,7 +96,8 @@ class _FolderPageState extends State<FolderPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Folders", style: TextStyle(fontSize: 24, color: Colors.white)),
+        title: const Text("Folders",
+            style: TextStyle(fontSize: 24, color: Colors.white)),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -110,7 +111,7 @@ class _FolderPageState extends State<FolderPage> {
       body: storageKeys.isEmpty
           ? const Center(child: Text("No folders created."))
           : Padding(
-            padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(12.0),
               child: GridView.builder(
                 itemCount: storageKeys.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -120,18 +121,29 @@ class _FolderPageState extends State<FolderPage> {
                   childAspectRatio: 1,
                 ),
                 itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const FolderIcon(color: true,),
-                      const SizedBox(height: 6),
-                      Text(
-                        storageKeys[index],
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              Folderstorage(folderName: storageKeys[index]),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const FolderIcon(color: true),
+                        const SizedBox(height: 6),
+                        Text(
+                          storageKeys[index],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -139,7 +151,6 @@ class _FolderPageState extends State<FolderPage> {
     );
   }
 }
-
 
 class FolderIcon extends StatelessWidget {
   final Color folderColor;

@@ -4,11 +4,12 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:studyhelp/drawer.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Future.delayed(const Duration(seconds: 2));
   FlutterNativeSplash.remove();
@@ -44,6 +45,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   double endY = 770;
   TextEditingController _controller = TextEditingController();
   List _file = [];
+
+  List<String> storageKeys = [];
+  String? selectedSubject;
 
   late final AnimationController _controllerRotate = AnimationController(
     upperBound: 0.13,
@@ -83,9 +87,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Future<void> _processImage(List<File> files) async {
     for (int i = 0; i < files.length; i++) {
       final inputImage = InputImage.fromFile(files[i]);
-      final textRecongnizer = TextRecognizer(script: TextRecognitionScript.latin);
+      final textRecongnizer =
+          TextRecognizer(script: TextRecognitionScript.latin);
       final RecognizedText recognizedText =
-      await textRecongnizer.processImage(inputImage);
+          await textRecongnizer.processImage(inputImage);
       List<TextBlock> extractedText = recognizedText.blocks;
       for (TextBlock block in extractedText) {
         String textIndex = "";
@@ -110,25 +115,44 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return null;
   }
 
-  void _createPDF(List<File> files, String fileName) async {
+  void _createPDF(List<File> files, String fullPath) async {
     Directory appDocDir = await getApplicationDocumentsDirectory();
-    String appPath = appDocDir.path;
+    String fullFilePath = "${appDocDir.path}/$fullPath.pdf";
+
+    final folderDir = Directory("${appDocDir.path}/${fullPath.split('/')[0]}");
+    if (!(await folderDir.exists())) {
+      await folderDir.create(recursive: true);
+    }
 
     final pdf = pw.Document();
-    for (int i = 0; i < files.length; i++) {
-      final image = pw.MemoryImage(files[i].readAsBytesSync());
+    for (File file in files) {
+      final image = pw.MemoryImage(file.readAsBytesSync());
       pdf.addPage(pw.Page(
-        build: (pw.Context context) {
-          return pw.Center(child: pw.Image(image));
-        },
+        build: (pw.Context context) => pw.Center(child: pw.Image(image)),
         pageFormat: PdfPageFormat.a4,
       ));
     }
 
-    final File file = File("$appPath/$fileName.pdf");
-    await file.writeAsBytes(await pdf.save());
+    final outputFile = File(fullFilePath);
+    await outputFile.writeAsBytes(await pdf.save());
+    print("✅ PDF saved to: $fullFilePath");
+  }
 
-    print("✅ PDF saved in app directory: ${file.path}");
+  Future<void> _loadFoldersFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> folders = [];
+    int index = 1;
+
+    while (true) {
+      String? value = prefs.getString(index.toString());
+      if (value == null) break;
+      folders.add(value);
+      index++;
+    }
+
+    setState(() {
+      storageKeys = folders;
+    });
   }
 
   List<File> imageFile = [];
@@ -144,12 +168,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     _listOfFiles();
+    _loadFoldersFromPrefs();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    _controller = TextEditingController();
     return Scaffold(
         appBar: AppBar(
           title: const Text(
@@ -182,17 +206,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
-                const PopupMenuItem<String>(
-                  value: 'create_folder',
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Icon(Icons.picture_as_pdf, color: Colors.red),
-                      SizedBox(width: 10),
-                      Text('Save In Folder', style: TextStyle(color: Colors.black)),
-                    ],
-                  ),
-                ),
               ],
               onSelected: (String value) {
                 switch (value) {
@@ -208,34 +221,67 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     if (imageFile.isEmpty) {
                       showSnackBar(context, 'Select At least 1 Image');
                     } else {
+                      _loadFoldersFromPrefs();
                       showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text("File Name"),
-                              content: TextField(
-                                controller: _controller,
-                              ),
-                              actions: [
-                                GestureDetector(
-                                    onTap: () {
-                                      if (_controller.text != "") {
-                                        _createPDF(imageFile, _controller.text);
-                                        Navigator.pop(context);
-                                      } else {
+                        context: context,
+                        builder: (context) {
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return AlertDialog(
+                                title: const Text(
+                                    "Select Subject & Enter File Name"),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    DropdownButtonFormField<String>(
+                                      value: selectedSubject,
+                                      items: storageKeys
+                                          .map((subject) => DropdownMenuItem(
+                                                value: subject,
+                                                child: Text(subject),
+                                              ))
+                                          .toList(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedSubject = value;
+                                        });
+                                      },
+                                      hint: const Text("Select Subject"),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    TextField(
+                                      controller: _controller,
+                                      decoration: const InputDecoration(
+                                          hintText: "File Name"),
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      if (_controller.text.trim().isEmpty) {
+                                        showSnackBar(context,
+                                            "File Name Cannot Be Empty");
+                                      } else if (selectedSubject == null) {
                                         showSnackBar(
-                                            context, "File Name Cannot Be Empty");
+                                            context, "Please Select a Subject");
+                                      } else {
+                                        String fullPath =
+                                            "$selectedSubject/${_controller.text.trim()}";
+                                        _createPDF(imageFile, fullPath);
+                                        Navigator.pop(context);
                                       }
                                     },
-                                    child: const Text("Save"))
-                              ],
-                            );
-                          }
-                        );
+                                    child: const Text("Save"),
+                                  )
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      );
                     }
                     break;
-                  case 'create_folder':
-                    
                 }
               },
             )
@@ -270,16 +316,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: MediaQuery.of(context).size.height,child: mainScreen())
+              SizedBox(
+                  height: MediaQuery.of(context).size.height,
+                  child: mainScreen())
             ],
           ),
-        )
-    );
+        ));
   }
 
-  Widget mainScreen(){
-    return
-      Stack(children: [
+  Widget mainScreen() {
+    return Stack(
+      children: [
         GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3),
@@ -320,10 +367,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         child: Stack(alignment: Alignment.topRight, children: [
                           Center(
                               child: Image.file(
-                                imageFile[index],
-                                width: 350,
-                                height: 400,
-                              )),
+                            imageFile[index],
+                            width: 350,
+                            height: 400,
+                          )),
                           IconButton(
                               onPressed: () {
                                 Navigator.of(context).pop();
@@ -350,7 +397,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               child: GestureDetector(
                   onTap: () async {
                     final image =
-                    await picker.pickImage(source: ImageSource.camera);
+                        await picker.pickImage(source: ImageSource.camera);
                     resetToOriginalPosition();
                     endY = 900;
                     endX = 380;
@@ -378,8 +425,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   endY = 900;
                   endX = 360;
                   set = 0;
-                  setState(() {
-                  });
+                  setState(() {});
                   if (image.isEmpty) return;
                   for (int i = 0; i < image.length; i++) {
                     imageFile.add(File(image[i].path));
@@ -392,7 +438,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           child: iconContainer(Icons.file_open),
         ),
       ],
-      );
+    );
   }
 }
 

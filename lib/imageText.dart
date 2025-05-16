@@ -245,19 +245,16 @@ class Node<T> {
   T? limit;
   bool isLoop;
 
-  // Variable Node Constructor
   Node.variable(this.name, this.type, this.value, {this.isLoop = false})
       : conditionVariable = null,
         operator = null,
         limit = null;
 
-  // Condition Node Constructor (for if/while conditions)
   Node.condition(this.conditionVariable, this.operator, this.limit, {this.isLoop = true}) 
       : name = "",
         type = "condition",
         value = null;
 
-  // Convert from JSON-like structure to Node object
   static Node fromData(Map<String, dynamic> data) {
     var key = data.keys.first;
     var values = data[key];
@@ -267,7 +264,6 @@ class Node<T> {
         throw Exception("Invalid condition format: $values");
       }
 
-      // Parsing condition (e.g., "a < 15")
       List<String> parts = values[1].split(' ');
       if (parts.length != 3) {
         throw Exception("Malformed condition expression: ${values[1]}");
@@ -276,7 +272,7 @@ class Node<T> {
       return Node.condition(
         parts[0],  // Variable
         parts[1],  // Operator
-        num.tryParse(parts[2]) ?? parts[2], // Limit (parsed if numeric)
+        num.tryParse(parts[2]) ?? parts[2],
         isLoop: data.containsKey("isloop") ? data["isloop"] : false
       );
     } 
@@ -286,9 +282,9 @@ class Node<T> {
       }
 
       return Node.variable(
-        values[2], // Name
-        values[0], // Type
-        values[1], // Value
+        values[2],
+        values[0],
+        values[1],
         isLoop: data.containsKey("isloop") ? data["isloop"] : false
       );
     } 

@@ -45,12 +45,12 @@ class DraggableItem {
           id: id,
           offset: offset,
           type: type,
-          color: Colors.yellow,
+          color: Colors.black,
           textEditingController: textEditingController,
           child: Container(
             width: 85,
             height: 85,
-            color: Colors.yellow,
+            color: Colors.black,
             child: Center(
               child: TextField(
                 controller: textEditingController,
@@ -70,13 +70,13 @@ class DraggableItem {
           id: id,
           offset: offset,
           type: type,
-          color: Colors.yellow.shade300,
+          color: Colors.black,
           textEditingController: textEditingController,
           child: ClipOval(
             child: Container(
               width: 85,
               height: 85,
-              color: Colors.yellow.shade300,
+              color: Colors.black,
               child: Center(
                 child: TextField(
                   controller: textEditingController,
@@ -97,14 +97,14 @@ class DraggableItem {
           id: id,
           offset: offset,
           type: type,
-          color: Colors.yellow.shade500,
+          color: Colors.black,
           textEditingController: textEditingController,
           child: Transform.rotate(
             angle: math.pi / 4,
             child: Container(
               width: 85,
               height: 85,
-              color: Colors.yellow.shade500,
+              color: Colors.black,
               child: Center(
                 child: Transform.rotate(
                   angle: -math.pi / 4,

@@ -27,13 +27,6 @@ class _MyFlowChartState extends State<MyFlowChart> {
           style: TextStyle(fontSize: 24, color: Colors.white),
         ),
         backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.picture_as_pdf),
-            color: Colors.red,
-          )
-        ],
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: RepaintBoundary(
@@ -55,7 +48,7 @@ class _MyFlowChartState extends State<MyFlowChart> {
                           decoration: const BoxDecoration(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(12.0)),
-                              color: Colors.limeAccent),
+                              color: Colors.white),
                           child: const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text("Generate ScreenShot",
