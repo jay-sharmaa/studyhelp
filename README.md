@@ -16,6 +16,7 @@
 
 <p float="left">
   <img src="https://github.com/jay-sharmaa/studyhelp/blob/main/assests/img6.jpg" width="200"/>
+  <img src="https://github.com/jay-sharmaa/studyhelp/blob/main/assests/img12.jpg" width="200"/>
 </p>
 
 # Image to Text
