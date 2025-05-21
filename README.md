@@ -2,7 +2,7 @@
 
 An advanced app created to help student learn and save there notes and to help computer science students create the algorithmic flow chart that they need of any algorithm
 
-[Run App In Demo(not able to access key features like camera, and can cause ui irregularities cause of emulator errors in appetizers)]([https://github.com/jay-sharmaa/WeeklyProjects/tree/main/parallexShift])(https://appetize.io/embed/b_ihevdlvxqe6e3h7x7y7ouyfiaq))
+[Run App In Demo(not able to access key features like camera, and can cause ui irregularities cause of emulator errors in appetizers)](https://appetize.io/embed/b_ihevdlvxqe6e3h7x7y7ouyfiaq)
 
 # Loading Screen
 
